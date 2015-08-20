@@ -1,0 +1,128 @@
+---   
+- name: Include stage var file
+  include_vars: main-stage.yml
+  when: inventory == "stage"
+
+- name: Include production var file
+  include_vars: main-production.yml
+  when: inventory == "production"
+
+- name: Include docker var file
+  include_vars: main-docker.yml
+  when: docker==1
+
+- name: Type of redis
+  debug: msg={{type}}
+  when: docker==0
+
+- name: Type of inventory
+  debug: msg={{inventory}}
+  when: docker==0
+
+- name: update apt
+  apt: update_cache=yes
+
+- name: ensure packages installed
+  apt: pkg={{ item }} state=latest
+  with_items:
+    - ntp
+    - unzip
+    - htop
+
+# Configure timezone
+- name: Configuring timezone
+  shell: echo {{ ELASTIC_TIMEZONE }} > /etc/timezone; dpkg-reconfigure --frontend noninteractive tzdata
+
+- name: create elasticsearch group
+  group: name={{ELASTIC_GROUP}} state=present system=yes
+
+- name: create elasticsearch user
+  user: name={{ELASTIC_USER}} group=elasticsearch createhome=no shell=/bin/false system=yes state=present
+
+- name: remove app folder
+  command: rm -rf {{APP_FOLDER}}/elasticsearch/ 
+
+- name: remove conf folder
+  command: rm -rf {{CONF_FOLDER}}/elasticsearch
+
+- name: remove conf folder
+  command: rm -rf {{PLUGIN_FOLDER}}/*
+
+- name: remove supervisor conf folder
+  command: rm -rf {{CONF_FOLDER}}/supervisord/conf.d/elasticsearch.yml
+
+- name: make sure that {{CONF_FOLDER}}/elasticsearch exists
+  file: path={{CONF_FOLDER}}/elasticsearch state=directory mode=0755 group={{ELASTIC_GROUP}} owner={{ELASTIC_USER}}
+
+- name: make sure that /data/elasticsearch exists
+  file: path={{DATA_FOLDER}}/elasticsearch state=directory mode=0755 group={{ELASTIC_GROUP}} owner={{ELASTIC_USER}}
+
+- name: make sure that /logs/elasticsearch exists
+  file: path={{LOGS_FOLDER}}/elasticsearch state=directory mode=0755 group={{ELASTIC_GROUP}} owner={{ELASTIC_USER}}
+
+- name: download elasticsearch {{ELASTIC_VERSION}}
+  get_url: url={{ELASTIC_DOWNLOAD}} dest={{APP_FOLDER}}/elasticsearch-{{ELASTIC_VERSION}}.tar.gz
+
+- name: untar elasticsearch
+  command: tar zxf {{APP_FOLDER}}/elasticsearch-{{ELASTIC_VERSION}}.tar.gz -C {{APP_FOLDER}}
+
+- name: Creates Symbolic directory    
+  file: src={{APP_FOLDER}}/elasticsearch-{{ELASTIC_VERSION}} dest={{HOME_FOLDER}} state=link
+
+- name: Copy conf master file
+  template: src=elasticsearch-master.yml.j2 dest={{CONF_FOLDER}}/elasticsearch/elasticsearch.yml
+  when: type == "master"
+
+- name: Copy conf slave file
+  template: src=elasticsearch-slave.yml.j2 dest={{CONF_FOLDER}}/elasticsearch/elasticsearch.yml
+  when: type == "slave"
+
+- name: Copy conf initial 
+  shell: mv /srv/app/elasticsearch/config/elasticsearch.yml {{CONF_FOLDER}}/elasticsearch/elasticsearch.yml
+  when: docker==1
+
+- name: Copy conf logging file
+  template: src=logging.yml.j2 dest={{CONF_FOLDER}}/elasticsearch/logging.yml
+
+- name: Copy supervisord conf file
+  template: src=elastic-supervisor.conf.j2 dest={{CONF_FOLDER}}/supervisord/conf.d/elasticsearch.conf
+  when: docker==0
+
+# Configure open file limits
+- name: Configuring open file limits
+  shell: "echo Configuring open file limits"
+- lineinfile: dest=/etc/security/limits.conf regexp='^{{ ELASTIC_USER }}     -    nofile    {{ elasticsearch_max_open_files }}' insertafter=EOF line='{{ ELASTIC_USER }}     -    nofile    {{ elasticsearch_max_open_files }}'
+  when: elasticsearch_max_open_files is defined
+
+- lineinfile: dest=/etc/security/limits.conf regexp='^{{ ELASTIC_USER }}     -    memlock   {{ elasticsearch_max_locked_memory }}' insertafter=EOF line='{{ ELASTIC_USER }}     -    memlock   {{ elasticsearch_max_locked_memory }}'
+  when: elasticsearch_max_locked_memory is defined
+- lineinfile: dest=/etc/pam.d/su regexp='^session    required   pam_limits.so' insertafter=EOF line='session    required   pam_limits.so'
+- lineinfile: dest=/etc/pam.d/common-session regexp='^session    required   pam_limits.so' insertafter=EOF line='session    required   pam_limits.so'
+- lineinfile: dest=/etc/pam.d/common-session-noninteractive regexp='^session    required   pam_limits.so' insertafter=EOF line='session    required   pam_limits.so'
+- lineinfile: dest=/etc/pam.d/sudo regexp='^session    required   pam_limits.so' insertafter=EOF line='session    required   pam_limits.so'
+
+# Install AWS Plugin
+#- include: aws.yml
+#  when: (PLUGIN_AWS_VERSION is defined)
+
+# Install Other Generic Plugins
+- include: plugins.yml
+  when: (ELASTIC_PLUGINS is defined)
+
+- name: Fix Permission directory 
+  file: >
+    path="{{ HOME_FOLDER }}" state=directory
+    owner={{ ELASTIC_USER }} group={{ ELASTIC_GROUP }}
+    recurse=yes
+  when: docker==0
+
+- name: ensure supervisor service is restarted
+  service: name=supervisor state=restarted
+  when: docker==0
+
+
+
+
+
+
+

@@ -1,0 +1,153 @@
+---
+- apt: name={{item.package}} state=present
+  with_items:
+    - package: 'python-pip'
+    - package: 'python-cairo'
+    - package: 'python-django'
+    - package: 'python-django-tagging'
+    - package: 'libapache2-mod-wsgi'
+    - package: 'python-twisted'
+    - package: 'python-memcache'
+    - package: 'python-pysqlite2'
+    - package: 'python-simplejson'
+    - package: 'python-rrdtool'
+    - package: 'python-pyparsing'
+    - package: 'acl'
+  sudo: yes
+
+- name: delete old webapp and storage
+  file: path=/opt/{{APP_NAME}}/{{item}} state=absent
+  with_items:
+    - webapp
+    - storage
+  sudo: yes
+
+- name: install other python packages
+  command: pip install {{ item.package }}
+  with_items:
+    - package: 'pytz'
+    - package: 'whisper'
+    - package: 'carbon'
+    - package: 'graphite-web'
+  sudo: yes
+
+- name: create directories
+  file: path={{item}} state=directory
+  with_items:
+    - "{{SRC_FOLDER}}/{{APP_NAME}}"
+    - "{{LOG_FOLDER}}/{{APP_NAME}}"
+    - "{{CONF_FOLDER}}/{{APP_NAME}}"
+    - "{{DATA_FOLDER}}/{{APP_NAME}}"
+    - "{{DATA_FOLDER}}/{{APP_NAME}}/storage"
+    - "/var/lib/carbon"
+  sudo: yes
+
+- name: create user carbon
+  command: useradd -d /var/lib/carbon -r {{ CARBON_USER }}
+  sudo: yes
+
+- name: change directory owner
+  command: chown -R {{ CARBON_USER }} {{ item }}
+  with_items:
+    - "/var/lib/carbon"
+    - "{{DATA_FOLDER}}/{{APP_NAME}}/storage"
+    - "/opt/graphite"
+  sudo: yes
+
+- name: add write right to group
+  command: chmod g+w {{DATA_FOLDER}}/{{APP_NAME}}/storage/log
+  sudo: yes
+
+- name: setup acl
+  command: setfacl -m "default:group::rwx" {{ item }}
+  with_items:
+    - "{{DATA_FOLDER}}/{{APP_NAME}}/storage/log"
+    - "{{DATA_FOLDER}}/{{APP_NAME}}/storage/log/webapp"
+
+- name: copy conf  
+  template: src={{ item }}-conf.j2 dest=/opt/{{APP_NAME}}/conf/{{item}}.conf mode=0755 owner={{ CARBON_USER }} group={{ CARBON_USER }}
+  with_items:
+    - aggregation-rules
+    - blacklist
+    - carbon
+    - relay-rules
+    - rewrite-rules
+    - storage-aggregation
+    - storage-schemas
+    - whitelist 
+  sudo: yes
+
+- name: copy web conf 
+  template: src=graphite-wsgi.j2 dest=/opt/{{APP_NAME}}/conf/graphite.wsgi mode=0777 owner=root group=root
+  sudo: yes
+
+- name: copy other conf  
+  template: src=local-setting-py.j2 dest=/opt/{{APP_NAME}}/webapp/graphite/local_settings.py mode=0755 owner=root group=root
+  sudo: yes
+
+- name: copy apache conf 
+  template: src=graphite-web-apache-conf.j2 dest=/etc/apache2/sites-available/{{APP_NAME}}.conf mode=0755 owner=root group=root
+  sudo: yes
+
+- name: activate web 
+  file: src=/etc/apache2/sites-available/{{APP_NAME}}.conf dest=/etc/apache2/sites-enabled/{{APP_NAME}}.conf state=link mode=0755 owner=root group=root
+  sudo: yes
+
+- name: desactivate default vhost
+  file: path=/etc/apache2/sites-enabled/000-default state=absent
+  sudo: yes
+
+- name: move storage directory to DATA_FOLDER
+  shell: 'cp -rf /opt/{{APP_NAME}}/storage/* {{DATA_FOLDER}}/{{APP_NAME}}/storage'
+  ignore_errors: yes
+  sudo: yes
+
+- name: delete standard storage location
+  file: path=/opt/{{APP_NAME}}/storage state=absent
+  sudo: yes
+
+- name: allow apache to access storage
+  command: "chown -R www-data:www-data {{DATA_FOLDER}}/{{APP_NAME}}/storage"
+  sudo: yes
+
+- name: create symlink to storage
+  file: src="{{DATA_FOLDER}}/{{APP_NAME}}/storage" dest="/opt/{{APP_NAME}}/storage" owner="www-data" group="www-data" state=link
+  sudo: yes
+
+- name: create symlink to conf
+  file: src=/opt/{{APP_NAME}}/conf/{{item}} dest={{CONF_FOLDER}}/{{APP_NAME}}/{{item}} mode=0644 state=link
+  with_items:
+    - "aggregation-rules.conf"
+    - "blacklist.conf"
+    - "carbon.conf"
+    - "relay-rules.conf"
+    - "rewrite-rules.conf"
+    - "storage-aggregation.conf"
+    - "storage-schemas.conf"
+    - "whitelist.conf"
+    - "graphite.wsgi"
+  sudo: yes
+
+- name: create symlink to local settings
+  file: src=/opt/{{APP_NAME}}/webapp/graphite/local_settings.py dest={{CONF_FOLDER}}/{{APP_NAME}}/local_settings.py mode=0644 state=link
+  sudo: yes
+
+- name: create symlink to app
+  file: src=/opt/{{APP_NAME}} dest={{APP_FOLDER}}/{{APP_NAME}} state=link
+  sudo: yes
+
+- name: restart apache
+  command: service apache2 restart
+  sudo: yes
+
+- name: copy supervisor conf 
+  template: src=supervisor-conf.j2 dest={{CONF_FOLDER}}/supervisord/conf.d/{{APP_NAME}}.conf mode=0755 owner=root group=root
+  sudo: yes
+
+- name: restart supervisor
+  command: service supervisor restart
+  sudo: yes
+
+- name: to complete installation run
+  debug: msg="cd /opt/{{APP_NAME}}/webapp/graphite \n python manage.py syncdb \n and set user {{WEB_USER}} and password '{{WEB_PASS}}'"
+

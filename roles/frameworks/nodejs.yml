@@ -1,0 +1,12 @@
+---
+# This playbook deploys the whole application stack in this site.  
+
+# Apply common configuration to all hosts
+- hosts: all
+  user: root
+  roles:
+     - { role: nodejs }
+
+
+
+ 

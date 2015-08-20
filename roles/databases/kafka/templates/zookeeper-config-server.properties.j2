@@ -1,0 +1,7 @@
+dataDir={{DATA_FOLDER}}/zookeeper
+dataLogDir={{LOGS_FOLDER}}/kafka/zookeeper
+clientPort=2181
+tickTime=2000
+initLimit=5
+syncLimit=2
+#server.{{ansible_eth0.ipv4.address.replace('.', '')}}={{ansible_eth0.ipv4.address}}:2888:3888

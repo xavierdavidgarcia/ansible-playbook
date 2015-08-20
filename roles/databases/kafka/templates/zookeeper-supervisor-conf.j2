@@ -1,0 +1,20 @@
+[program:zookeeper]
+command={{ APP_FOLDER }}/kafka/bin/zookeeper-server-start.sh {{ CONF_FOLDER }}/kafka/zookeeper-server.properties
+user=root
+autostart=true
+autorestart=true
+stopasgroup=true
+startsecs=30
+startretries=10
+log_stdout=true
+log_stderr=true
+stdout_logfile={{ LOGS_FOLDER }}/kafka/zookeeper-stdout.log
+stdout_logfile_maxbytes=20MB
+stdout_logfile_backups=1
+stdout_capture_maxbytes=0
+stdout_events_enabled=false
+stderr_logfile={{ LOGS_FOLDER }}/kafka/zookeeper-stderr.log
+stderr_logfile_maxbytes=20MB
+stderr_logfile_backups=1
+stderr_capture_maxbytes=0
+stderr_events_enabled=false

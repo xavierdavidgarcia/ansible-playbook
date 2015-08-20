@@ -1,0 +1,76 @@
+- apt: name={{item}} state=present
+  with_items:
+    - rsyslog
+    - logrotate
+  ignore_errors: yes
+
+- name: define production log items
+  set_fact: APP_LOG_ITEMS="{{ PRODUCTION_APP_LOG_ITEMS | unique }}"
+  when: inventory == "production"
+
+- name: define stage log items
+  set_fact: APP_LOG_ITEMS="{{ STAGE_APP_LOG_ITEMS | unique }}"
+  when: inventory == "stage"
+
+- name: initialize RSYSLOG_LOGENTRY_CONF
+  shell: "cat /dev/null > {{RSYSLOG_LOGENTRY_CONF}}"
+  sudo: yes
+  ignore_errors: yes
+
+- name: initialize RSYSLOG_APPS_CONF
+  shell: "cat /dev/null > {{RSYSLOG_APPS_CONF}}"
+  sudo: yes
+  ignore_errors: yes
+
+- name: delete old logrotate conf
+  shell: "rm {{LOGROTATE_CONF_DIR}}/odys_*"
+  sudo: yes
+  ignore_errors: yes
+
+- name: activate ModLoad imfile
+  lineinfile: dest={{RSYSLOG_APPS_CONF}} line="$ModLoad imfile" state=present
+  sudo: yes
+
+- name: copy rsyslog-conf to temporary
+  template: src=rsyslog-conf.j2 dest=/tmp/{{item.log_name}}.rsyslog-conf
+  with_items: APP_LOG_ITEMS
+  when: item.app_host == APP_HOST
+  sudo: yes
+
+- name: concatenate rsyslog-conf to RSYSLOG_APPS_CONF
+  shell: 'cat /tmp/{{item.log_name}}.rsyslog-conf >> {{RSYSLOG_APPS_CONF}}'
+  with_items: APP_LOG_ITEMS
+  when: item.app_host == APP_HOST
+  sudo: yes
+
+- name: copy logentry-ops-conf to temporary
+  template: src=logentry-ops-conf.j2 dest=/tmp/ops.logentry-conf
+  with_items: APP_LOG_ITEMS
+  when: item.app_host == APP_HOST
+  sudo: yes
+
+- name: copy logentry-conf to temporary
+  template: src=logentry-srv-conf.j2 dest=/tmp/{{item.log_token}}.logentry-conf
+  with_items: APP_LOG_ITEMS
+  when: item.app_host == APP_HOST
+  sudo: yes
+
+- name: concatenate logentry-conf to RSYSLOG_LOGENTRY_CONF
+  shell: 'cat /tmp/*.logentry-conf >> {{RSYSLOG_LOGENTRY_CONF}}'
+  sudo: yes
+
+- name: copy logrotate to LOGROTATE_CONF_DIR
+  template: src=logrotate-conf.j2 dest={{LOGROTATE_CONF_DIR}}/{{item.log_name}}
+  with_items: APP_LOG_ITEMS
+  when: item.app_host == APP_HOST
+  sudo: yes
+
+- name: remove temporary file
+  shell: "rm /tmp/*-conf"
+  sudo: yes
+  ignore_errors: yes
+
+- name: restart rsyslog
+  command: service rsyslog restart
+  sudo: yes
+  ignore_errors: yes

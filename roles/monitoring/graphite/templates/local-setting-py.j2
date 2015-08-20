@@ -1,0 +1,17 @@
+SECRET_KEY = '{{ WEB_PASS }}'
+DEBUG = True
+GRAPHITE_ROOT = '{{DATA_FOLDER}}/{{APP_NAME}}'
+CONF_DIR = '{{DATA_FOLDER}}/{{APP_NAME}}/conf'
+STORAGE_DIR    = '{{DATA_FOLDER}}/{{APP_NAME}}/storage'
+DATABASES = {
+    'default': {
+        'NAME': '/opt/{{APP_NAME}}/storage/{{APP_NAME}}.db',
+        'ENGINE': 'django.db.backends.sqlite3',
+        'USER': '{{WEB_USER}}',
+        'PASSWORD': '{{WEB_PASS}}',
+        'HOST': '',
+        'PORT': ''
+    }
+}
+CLUSTER_SERVERS = ["{{SERVER_1}}:80", "{{SERVER_2}}:80"]
+CARBONLINK_HOSTS = ['{{SERVER_1}}:7012', '{{SERVER_2}}:7022']

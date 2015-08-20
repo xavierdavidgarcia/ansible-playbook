@@ -1,0 +1,18 @@
+#####################################################
+# ---------------- WARNING -------------------------
+#   PLEASE USE THE FILE ON .bashrc.d FOLDER
+#   
+#####################################################
+
+# If not running interactively, don't do anything
+[ -z "$PS1" ] && return
+
+if [[ -d .bashrc.d ]]; then
+    for i in `ls .bashrc.d/*`; do
+            source ${i}
+    done
+fi
+
+
+
+

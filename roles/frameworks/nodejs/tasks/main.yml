@@ -1,0 +1,58 @@
+---
+- include: Debian.yml
+  when: ansible_os_family == "debian"
+
+- include: RedHat.yml
+  when: ansible_os_family == "redHat"
+
+- name: Creates TMP directory    
+  file: path={{NODEJS_TMP}}/{{NODEJS_FILE_NAME}} state=directory
+  sudo: true
+
+- name: Creates APP directory    
+  file: path={{APP_FOLDER}}/{{NODEJS_FILE_NAME}} state=directory
+  sudo: true
+
+- name: Creates Symbolic directory    
+  file: src={{APP_FOLDER}}/{{NODEJS_FILE_NAME}} dest={{APP_FOLDER}}/nodejs state=link
+  sudo: true
+
+#- name: Download nodejs {{NODEJS_VERSION}}
+#  get_url: url={{NODEJS_URL}} dest={{NODEJS_TMP}}
+
+#- name: Verify SHASUM of nodejs {{nodejs_version_tag}}
+#  shell: curl {{nodejs_shasum_url}} | grep {{nodejs_file_name}} | sha1sum -c chdir={{NODEJS_TMP}}/{{NODEJS_FILE_NAME}}
+
+- name: Download from master branch git repository
+  git: repo={{NODEJS_GIT}} 
+       dest={{NODEJS_TMP}}/{{NODEJS_FILE_NAME}}
+       accept_hostkey=yes
+       force=yes
+  sudo: true
+
+- name: Change to TAGs version {{NODEJS_VERSION}}
+  shell: git checkout tags/v{{NODEJS_VERSION}} chdir={{NODEJS_TMP}}/{{NODEJS_FILE_NAME}}
+  sudo: true
+  
+#- name: Unpack nodejs {{NODEJS_VERSION}}
+#  command: tar -xvzf {{NODEJS_FILE_NAME}}.tar.gz chdir={{NODEJS_TMP}}
+
+- name:  Compile and install nodejs {{NODEJS_VERSION}}
+  command: chdir={{NODEJS_TMP}}/{{NODEJS_FILE_NAME}} {{ item }}
+  with_items:
+    - ./configure --prefix={{APP_FOLDER}}/nodejs 
+    - /usr/bin/make
+    - /usr/bin/make install
+  sudo: true
+
+- name: Creates Symbolic directory    
+  file: src={{item.path}} dest={{ item.dest }} state=link
+  with_items:
+    - { path: '{{APP_FOLDER}}/nodejs/bin/node', dest: '{{INSTALL_LINK}}/node' }
+    - { path: '{{APP_FOLDER}}/nodejs/bin/npm', dest: '{{INSTALL_LINK}}/npm' }    
+  sudo: true
+    
+- name: NPM Install global packages
+  npm: name={{item}} global=yes
+  with_items: NODEJS_PACKAGES
+  sudo: true

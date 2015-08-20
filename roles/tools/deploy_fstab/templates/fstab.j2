@@ -1,0 +1,5 @@
+LABEL=cloudimg-rootfs	/	 ext4	defaults,discard	0 0
+#/dev/xvdb	/mnt	auto	defaults,nobootwait,comment=cloudconfig	0	2
+/dev/xvdh /srv ext4 noatime 0 0
+none            /run                      tmpfs           size=10%,mode=0755  0 0
+none            /run/lock                      tmpfs           size=5242880,mode=0755  0 0

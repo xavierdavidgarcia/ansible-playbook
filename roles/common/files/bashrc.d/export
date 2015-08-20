@@ -1,0 +1,27 @@
+# User Export
+
+export EDITOR=nano;
+export PAGER=less;
+export CDPATH=".:~:/etc";
+export VIPATH=".:~:/etc";
+
+# Env Export
+export HISTCONTROL=ignoredups # History ignore duplicates
+export HISTIGNORE="&:ls:[bf]g:exit"] # History ignore common commands
+export HISTSIZE=1000
+export HISTFILESIZE=2000
+export HISTCONTROL=ignoredups:ignorespace
+
+# append to the history file, don't overwrite it
+shopt -s histappend
+# Set architecture flags
+export ARCHFLAGS="-arch x86_64"
+
+
+# Custom
+
+# Locale is broken in Debian 7, so Perl based packages are always complaining
+# We've also had issues  with Python software because of this, here is the fix
+# Actually this won't hurt any Linux
+export LC_ALL=en_US.UTF-8
+export LANG=en_US.UTF-8

@@ -1,0 +1,6 @@
+---
+# Ansible playbook check if server are live
+#
+- name: waiting for server to come back
+  local_action: wait_for host={{ inventory_hostname }} state=started
+  sudo: false

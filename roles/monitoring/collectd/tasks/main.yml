@@ -1,0 +1,51 @@
+- apt: name={{item.package}} state=present
+  with_items:
+    - package: 'build-essential'
+    - package: 'librrd2-dev'
+    - package: 'libsensors4-dev'
+    - package: 'libsnmp-dev'
+    - package: 'libgcrypt-dev'
+    - package: 'chkconfig'
+    - package: 'wget'
+    - package: 'libcurl4-nss-dev'
+    - package: 'libdbi-dev'
+  sudo: yes
+
+- name: create directories
+  file: path={{item}} state=directory
+  with_items:
+    - "{{SRC_FOLDER}}/{{APP_NAME}}"
+    - "{{APP_FOLDER}}/{{APP_NAME}}"
+    - "{{LOG_FOLDER}}/{{APP_NAME}}"
+    - "{{CONF_FOLDER}}/{{APP_NAME}}"
+    - "{{DATA_FOLDER}}/{{APP_NAME}}"
+  sudo: yes
+
+- name: Download CollectD
+  command: 'wget -q -O {{APP_FOLDER}}/{{APP_NAME}}-{{COLLECTD_VERSION}}.tar.gz {{COLLECTD_DOWNLOAD}} creates={{APP_FOLDER}}/{{APP_NAME}}-{{COLLECTD_VERSION}}.tar.gz' 
+  sudo: yes
+
+- name: Extract CollectD archive
+  command: "tar -xzf {{APP_FOLDER}}/{{APP_NAME}}-{{COLLECTD_VERSION}}.tar.gz  -C {{APP_FOLDER}}"
+  sudo: yes
+
+- name: Compiling CollectD
+  command: chdir={{APP_FOLDER}}/{{APP_NAME}}-{{COLLECTD_VERSION}}/ {{ item }}
+  with_items:
+    - ./configure {{COLLECTD_OPTIONS}}
+    - /usr/bin/make
+    - /usr/bin/make install
+  ignore_errors: yes
+  sudo: yes
+
+- name: copy {{APP_NAME}} collectd conf
+  template: src=collectd-conf.j2 dest={{CONF_FOLDER}}/{{APP_NAME}}/{{APP_NAME}}.conf mode=0755 owner=root group=root
+  sudo: yes
+
+- name: copy {{APP_NAME}} supervisord script
+  template: src=supervisor-conf.j2 dest={{CONF_FOLDER}}/supervisord/conf.d/{{APP_NAME}}-supervisor.conf mode=0755 owner=root group=root
+  sudo: yes
+
+- name: restart supervisor
+  command: supervisorctl -s http://{{ ansible_tap0['ipv4']['address'] }}:9001 -uuser -p123 update
+  sudo: yes

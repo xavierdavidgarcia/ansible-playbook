@@ -1,0 +1,16 @@
+---
+# Ansible playbook to install Nginx from source on Debian
+#
+- name: Update fstab file
+  template:
+      src:  fstab.j2
+      dest: /etc/fstab
+      owner: root
+      group: root
+
+- name: restart machine
+  command: shutdown -r now "Ansible updates triggered"
+  async: 0
+  poll: 0
+  ignore_errors: true
+   

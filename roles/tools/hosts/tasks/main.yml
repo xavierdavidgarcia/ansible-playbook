@@ -1,0 +1,11 @@
+---
+# Ansible playbook to deploy your host file
+#
+- name: Update Hosts file
+  template:
+      src:  hosts.j2
+      dest: /etc/hosts
+      owner: root
+      group: root
+  when: inventory == "production"
+

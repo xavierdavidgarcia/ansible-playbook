@@ -1,0 +1,26 @@
+---
+- name: upgrade all packages
+  yum: name=* state=latest
+
+- name: Install RedHat packages
+  yum: pkg={{item}} state=present
+  with_items:
+    - wget
+    - openvpn
+
+- name: selinux disabled
+  selinux: state=disabled
+
+- debug: msg={{OPENVPN_URL}}
+
+- name: Remove Old Openvpn config
+  shell: rm -rf /etc/openvpn/*
+
+- name: Download Openvpn config
+  get_url: url={{OPENVPN_URL}} dest=/etc/openvpn/openvpn_client.tar.gz mode=0777
+
+- name: Extract Openvon configue archive
+  command: "tar -xzf /etc/openvpn/openvpn_client.tar.gz  -C /etc/openvpn"
+  sudo: yes
+  notify:
+  - Reload Openvpn

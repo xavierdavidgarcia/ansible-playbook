@@ -1,0 +1,16 @@
+---
+NODEJS_VERSION: "0.10.33"
+NODEJS_TYPE: "linux-x64" # linux-x86 darwin-x64 darwin-x86
+CONF_FOLDER: /srv/conf
+APP_FOLDER: /srv/app
+DATA_FOLDER: /srv/data
+LOGS_FOLDER: /srv/logs
+INSTALL_LINK: /usr/bin
+NODEJS_FILE_NAME: "node-v{{NODEJS_VERSION}}-{{NODEJS_TYPE}}"
+NODEJS_URL: "http://nodejs.org/dist/v{{NODEJS_VERSION}}/{{NODEJS_FILE_NAME}}.tar.gz"
+NODEJS_GIT: https://github.com/joyent/node.git
+NODEJS_TMP: "/tmp"
+NODEJS_PACKAGES:
+  - nodemon
+  - debug
+  - foreman

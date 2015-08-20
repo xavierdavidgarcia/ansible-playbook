@@ -1,0 +1,3 @@
+---
+- yum: name=python-pip
+- pip: name=cli53

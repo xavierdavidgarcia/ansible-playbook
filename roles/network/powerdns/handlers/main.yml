@@ -1,0 +1,41 @@
+---
+- name: reload powerdns
+  service:
+    name=pdns
+    state=reloaded
+
+- name: start powerdns
+  service:
+    name=pdns
+    state=started
+
+- name: restart powerdns
+  service:
+    name=pdns
+    state=restarted
+
+- name: reload nginx
+  service:
+    name=nginx
+    state=reloaded
+
+- name: restart nginx
+  service:
+    name=nginx
+    state=restarted
+
+- name: start nginx
+  service:
+    name=nginx
+    state=started
+
+
+- name: restart rsyslog
+  service:
+    name=rsyslog
+    state=restarted
+
+- name: restart php
+  service:
+    name=php5-fpm
+    state=restarted

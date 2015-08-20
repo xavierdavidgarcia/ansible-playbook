@@ -1,0 +1,121 @@
+---
+# Install AWS Plugin (see https://github.com/elasticsearch/elasticsearch-cloud-aws)
+#
+# The following variables need to be defined in your playbook or inventory:
+# - elasticsearch_plugin_aws_version
+#
+# The following variables provide a for now limited configuration for the plugin.
+# More options may be available in the future.
+# (see http://www.elasticsearch.org/guide/en/elasticsearch/reference/current/modules-discovery-ec2.html):
+# - AWS_EC2_GROUP
+# - AWS_EC2_PING_TIMEOUT
+# - AWS_ACCESS_KEY_STAGE
+# - AWS_SECRET_KEY_STAGE
+
+
+- name: Installing AWS Plugin
+  action: >
+    shell bin/plugin -install elasticsearch/elasticsearch-cloud-aws/{{ PLUGIN_AWS_VERSION }}
+    chdir={{HOME_FOLDER}}
+  ignore_errors: yes
+  sudo: true
+
+# Fix permissions
+- file: >
+    path="{{ PLUGIN_FOLDER }}" state=directory
+    owner={{ELASTIC_USER}} group={{ ELASTIC_GROUP }}
+    recurse=yes
+
+# Configure AWS Plugin
+- name: Configuring AWS EC2 auto-discovery Plugin
+  lineinfile: >
+    dest="{{ CONF_FOLDER }}/elasticsearch/elasticsearch.yml"
+    regexp='^(discovery.type: ec2)$'
+    insertafter='^(#*\sDiscovery\s#*)$'
+    line="discovery.type: ec2"
+
+- lineinfile: >
+    dest="{{ CONF_FOLDER }}/elasticsearch/elasticsearch.yml"
+    regexp='^(discovery.ec2.groups.*)$'
+    insertafter='^(discovery.type: ec2)$'
+    line="discovery.ec2.tag.{{AWS_EC2_GROUP}}: '{{ AWS_EC2_GROUP_VALUE }}'"
+
+- lineinfile: >
+    dest="{{ CONF_FOLDER }}/elasticsearch/elasticsearch.yml"
+    line="discovery.ec2.ping_timeout: {{ AWS_EC2_PING_TIMEOUT }}"
+
+- lineinfile: >
+    dest="{{ CONF_FOLDER }}/elasticsearch/elasticsearch.yml"
+    line="cloud.node.auto_attributes: true"
+
+- lineinfile: >
+    dest="{{ CONF_FOLDER }}/elasticsearch/elasticsearch.yml"
+    line="discovery.ec2.host_type: {{AWS_DISCOVERY_IP}}"
+
+- lineinfile: >
+    dest="{{ CONF_FOLDER }}/elasticsearch/elasticsearch.yml"
+    line="cloud.aws.access_key: '{{ AWS_ACCESS_KEY_STAGE }}'"
+  when: inventory == "stage"
+
+- lineinfile: >
+    dest="{{ CONF_FOLDER }}/elasticsearch/elasticsearch.yml"
+    line="cloud.aws.secret_key: '{{ AWS_SECRET_KEY_STAGE }}'"
+  when: inventory == "stage"
+
+- lineinfile: >
+    dest="{{ CONF_FOLDER }}/elasticsearch/elasticsearch.yml"
+    line="cloud.aws.access_key: '{{ AWS_ACCESS_KEY_PROD }}'"
+  when: inventory == "production"
+
+- lineinfile: >
+    dest="{{ CONF_FOLDER }}/elasticsearch/elasticsearch.yml"
+    line="cloud.aws.secret_key: '{{ AWS_SECRET_KEY_PROD }}'"
+  when: inventory == "production"
+
+- lineinfile: >
+    dest="{{ CONF_FOLDER }}/elasticsearch/elasticsearch.yml"
+    line="cloud.aws.region: '{{ AWS_REGION }}'"
+
+
+
+# Configure AWS S3 repository for snapshoot 
+- name: AWS S3 repository for snapshoot 
+  lineinfile: >
+    dest="{{ CONF_FOLDER }}/elasticsearch/elasticsearch.yml"
+    line="repositories:"
+- lineinfile: >
+    dest="{{ CONF_FOLDER }}/elasticsearch/elasticsearch.yml"
+    line="s3:"
+
+- lineinfile: >
+    dest="{{ CONF_FOLDER }}/elasticsearch/elasticsearch.yml"
+    line="region: '{{ AWS_REGION }}'"
+
+- lineinfile: >
+    dest="{{ CONF_FOLDER }}/elasticsearch/elasticsearch.yml"
+    line="private-bucket:"
+
+- lineinfile: >
+    dest="{{ CONF_FOLDER }}/elasticsearch/elasticsearch.yml"
+    line="bucket: '{{AWS_BUCKET}}'"
+
+- lineinfile: >
+    dest="{{ CONF_FOLDER }}/elasticsearch/elasticsearch.yml"
+    line="access_key: '{{ AWS_ACCESS_KEY_PROD }}'"
+  when: inventory == "production"
+
+- lineinfile: >
+    dest="{{ CONF_FOLDER }}/elasticsearch/elasticsearch.yml"
+    line="secret_key: '{{ AWS_SECRET_KEY_PROD }}'"
+  when: inventory == "production"
+
+- lineinfile: >
+    dest="{{ CONF_FOLDER }}/elasticsearch/elasticsearch.yml"
+    line="access_key: '{{ AWS_ACCESS_KEY_STAGE }}'"
+  when: inventory == "stage"
+   
+- lineinfile: >
+    dest="{{ CONF_FOLDER }}/elasticsearch/elasticsearch.yml"
+    line="secret_key: '{{ AWS_SECRET_KEY_STAGE }}'"
+  when: inventory == "stage"
+

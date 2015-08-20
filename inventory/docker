@@ -1,0 +1,8 @@
+[local]
+hosts=localhost
+
+[docker:children]
+local
+
+[docker:vars]
+docker = 1

@@ -1,0 +1,41 @@
+---
+
+#  Install the packages first
+- include: debian.yml
+  when: ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
+
+- include: redhat.yml
+  when: ansible_os_family == 'RedHat'
+##############
+
+# Configure Sensu client
+
+- name: set which Ruby to use
+  lineinfile:
+    dest=/etc/default/sensu
+    regexp=^EMBEDDED_RUBY=
+    line=EMBEDDED_RUBY={{ sensu_embedded_ruby }}
+
+- name: create the SSL dir
+  file: path=/etc/sensu/ssl owner=sensu group=sensu state=directory mode=0750
+
+- name: Put the keys
+  copy: src=cert.pem dest=/etc/sensu/ssl/cert.pem owner=sensu group=sensu mode=0640
+  copy: src=key.pem  dest=/etc/sensu/ssl/key.pem  owner=sensu group=sensu mode=0640
+
+- name: Put the Rabbit conf
+  template: src=config.json.j2 dest=/etc/sensu/config.json owner=sensu group=sensu mode=0640
+
+- name: Put Sensu Client conf
+  template: src=client.json.j2 dest=/etc/sensu/conf.d/client.json owner=sensu group=sensu mode=0640
+
+- name: Copy all the checks files
+  copy: src=files/plugins/ dest=/etc/sensu/plugins/ owner="{{ sensu_user }}" group="{{ sensu_group }}" mode=0750
+
+- name: Enable sensu-client to survive reboot
+  service: name=sensu-client enabled=yes
+
+- name: restart sensu client
+  service: name=sensu-client state=restarted
+
+- debug: msg=" *** Done :) *** "

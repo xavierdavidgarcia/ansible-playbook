@@ -1,0 +1,60 @@
+---
+# Create a new database with name 'powerdns'
+- name: Create database
+  mysql_db: 
+    login_host={{ MYSQL_HOST }}
+    login_port={{ MYSQL_PORT }}
+    login_user={{ MYSQL_USER_MASTER }}
+    login_password={{ MYSQL_PASSWORD }}
+    name={{ MYSQL_DB }}
+    state=present
+  sudo: true 
+
+- name: Set user privileges localhost
+  mysql_user:
+    login_host={{ MYSQL_HOST }}
+    login_port={{ MYSQL_PORT }}
+    login_user={{ MYSQL_USER_MASTER }}
+    login_password={{ MYSQL_PASSWORD_MASTER }}
+    host=localhost
+    state=present
+    append_privs=yes
+    priv={{ item }}
+  with_items:
+    - '{{ MYSQL_DB }}.*:ALL'
+
+- name: Set user privileges 127.0.0.1
+  mysql_user:
+    login_host={{ MYSQL_HOST }}
+    login_port={{ MYSQL_PORT }}
+    login_user={{ MYSQL_USER_MASTER }}
+    login_password={{ MYSQL_PASSWORD }}
+    host=127.0.0.1
+    state=present
+    append_privs=yes
+    priv={{ item }}
+  with_items:
+    - '{{ MYSQL_DB }}.*:ALL'
+
+- name: Set user privileges 127.0.0.1
+  mysql_user:
+    login_host={{ MYSQL_HOST }}
+    login_port={{ MYSQL_PORT }}
+    login_user={{ MYSQL_USER_MASTER }}
+    login_password={{ MYSQL_PASSWORD }}
+    host="%"
+    state=present
+    append_privs=yes
+    priv={{ item }}
+  with_items:
+    - '{{ MYSQL_DB }}.*:ALL'
+
+- name: Copy mysql schema
+  copy:
+    src=powerdns.sql
+    dest=/tmp/powerdns.sql
+
+- name: Init mysql schema
+  mysql_db: name={{ MYSQL_DB }} state=import target=/tmp/powerdns.sql
+
+-

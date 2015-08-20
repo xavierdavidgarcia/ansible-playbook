@@ -1,0 +1,9 @@
+---
+# vars to setup  the 'ec2-metadata' script
+#
+ec2md_url: http://s3.amazonaws.com/ec2metadata/ec2-metadata
+ec2md_dir: /usr/local/bin
+
+# for route53 and cli53
+route53_dns_zone: 
+

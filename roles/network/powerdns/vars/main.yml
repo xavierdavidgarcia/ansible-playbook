@@ -1,0 +1,34 @@
+---
+# System
+API_TOKEN: ""
+APP_FOLDER: "/srv/app/powerdns" 
+CONF_FOLDER: "/srv/conf/powerdns"
+LOG_FOLDER: "/srv/logs/powerdns"
+SYSLOG_PATH: "/etc/rsyslog.conf"
+
+# PowerDNS
+BINDING_IP: "0.0.0.0"
+BINDING_PORT: "53"
+VERSION_DISPLAY: "anonymous"
+GUARDIAN: "yes"
+WEB_BINDING: ""
+WEB_PORT: "8081"
+LOG_LEVEL: "3"
+
+# Mysql
+MYSQL_HOST: "db1.domain_name.net"
+MYSQL_PORT: "3306"
+MYSQL_DB: "powerdns"
+MYSQL_USER: "powerdns_user"
+MYSQL_PASSWORD: ""
+MYSQL_USER_MASTER: ""
+MYSQL_PASSWORD_MASTER: ""
+DNS_SEC: "no"
+
+# Poweradmin
+POWER_PATH: "/srv/app"
+POWER_URL: "http://github.com/downloads/poweradmin/poweradmin/poweradmin-2.1.6.tgz"
+POWER_GIT: "https://github.com/poweradmin/poweradmin.git"
+
+# NGINX
+NGINX_LOG: "/srv/logs/nginx"

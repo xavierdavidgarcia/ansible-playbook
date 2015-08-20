@@ -1,0 +1,27 @@
+---
+- name: Add Haproxy apt repository
+  apt_repository: repo='{{DEBIAN_REPO}}' state=present
+
+- name: Update cache apt and Install haproxy
+  apt: name=haproxy state=latest default_release=wheezy-backports update_cache=yes
+
+- name: Remove old configuration
+  command: rm -rf /etc/haproxy/haproxy.cfg
+  ignore_errors: yes
+
+- name: Copy configuration Production templates
+  template: 
+      src: haproxy-header.cfg.j2
+      dest: /etc/haproxy/haproxy.cfg
+      owner: "{{ USER }}"
+      group: "{{ USER }}"
+      mode: 0755
+
+- name: Definition into haproxy.cfg
+  shell: 'cat /tmp/{{item.srv_name}}.backend >> /etc/haproxy/haproxy.cfg'
+  with_items: API_SERVICES
+  sudo: yes
+
+- name: restart haproxy
+  shell: service haproxy restart
+  sudo: yes

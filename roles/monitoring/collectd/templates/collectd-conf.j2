@@ -1,0 +1,64 @@
+Hostname    	"{{ansible_hostname}}"
+BaseDir			"{{DATA_FOLDER}}/{{APP_NAME}}"
+LoadPlugin syslog
+LoadPlugin aggregation
+LoadPlugin cpu
+LoadPlugin df
+LoadPlugin disk
+LoadPlugin interface
+#LoadPlugin java
+LoadPlugin load
+LoadPlugin memory
+LoadPlugin network
+LoadPlugin nfs
+LoadPlugin rrdtool
+#LoadPlugin tcpconns
+LoadPlugin write_graphite
+#LoadPlugin match_hashed
+# <Plugin "java">
+# 	JVMArg "-verbose:jni"
+# 	JVMArg "-Djava.class.path=/srv/app/collectd/share/collectd/java/collectd-api.jar:/srv/app/collectd/share/collectd/java/generic-jmx.jar"
+# 	LoadPlugin "org.collectd.java.GenericJMX"
+#   	<Plugin "GenericJMX">
+# 	    # Memory usage by memory pool.
+# 	    <MBean "memory_pool">
+# 	      ObjectName "java.lang:type=MemoryPool,*"
+# 	      InstancePrefix "memory_pool-"
+# 	      InstanceFrom "name"
+# 	      <Value>
+# 	        Type "memory"
+# 	        #InstancePrefix ""
+# 	        #InstanceFrom ""
+# 	        Table true
+# 	        Attribute "Usage"
+# 	      </Value>
+# 	    </MBean>
+# 	    <Connection>
+# 	      Host "{{ansible_hostname}}"
+# 	      ServiceURL "service:jmx:rmi:///jndi/rmi://localhost:8086/jmxrmi"
+# 	      Collect "memory_pool"
+# 	    </Connection>
+#   	</Plugin>
+# </Plugin>
+<Plugin write_graphite>
+  <Carbon>
+    Host "{{GRAPHITE_LB}}"
+    Port "2003"
+    Prefix "collectd.{{inventory}}."
+    Postfix ""
+    StoreRates false
+    AlwaysAppendDS false
+    EscapeCharacter "_"
+  </Carbon>
+</Plugin>
+#<Plugin write_graphite>
+#  <Carbon>
+#    Host "{{GRAPHITE_HOST_2}}"
+#    Port "2003"
+#    Prefix "collectd.{{inventory}}."
+#    Postfix ""
+#    StoreRates false
+#    AlwaysAppendDS false
+#    EscapeCharacter "_"
+#  </Carbon>
+#</Plugin>

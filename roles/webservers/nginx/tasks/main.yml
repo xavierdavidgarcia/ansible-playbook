@@ -1,0 +1,124 @@
+---
+# Ansible playbook to install Nginx from source on Debian
+#
+- name: Install wget
+  apt: pkg=wget
+
+- name: Prerequis Nginx
+  apt: pkg={{ item.path }} state=installed update_cache=true
+  with_items:
+    - path: 'build-essential'
+    - path: 'libpcre3'
+    - path: 'libpcre3-dev'
+    - path: 'libssl-dev'
+    - path: 'zlib1g-dev'
+    - path: 'php5-dev'
+    - path: 'unzip'
+    - path: 'php5-cli'
+    - path: 'php5-common'
+    - path: 'php5-curl'
+
+- name: Creates logs nginx folder 
+  file: path=/srv/logs/nginx state=directory
+    owner=www-data group=www-data
+    mode=0755
+
+- name: Creates conf nginx folder 
+  file: path=/srv/conf/nginx state=directory  
+
+- name: Download NGinx
+  command: 'wget -q -O {{APP_FOLDER}}/nginx-{{NGINX_VERSION}}.tar.gz {{NGINX_DOWNLOAD}} creates={{APP_FOLDER}}/nginx-{{NGINX_VERSION}}.tar.gz' 
+
+- name: Download extended status 
+  git: repo=https://github.com/xavierdavidgarcia/nginx_extended_status.git 
+       dest={{APP_FOLDER}}/nginx_extended_status
+       accept_hostkey=yes
+       force=yes
+
+- name: Extract Nginx archive
+  command: "tar -xzf {{APP_FOLDER}}/nginx-{{NGINX_VERSION}}.tar.gz  -C {{APP_FOLDER}}"
+  sudo: yes
+
+- name: debug NGINX
+  debug: msg={{APP_FOLDER}}/nginx-{{NGINX_VERSION}}
+
+- name: Crypte Hostname
+  shell: echo "{{inventory_hostname}}" | sha1sum | cut -d "-" -f1
+  register: ID_SERVER_CRYPT
+
+- name: Inventory name
+  debug: msg={{inventory_hostname}}  
+
+- name: Token generated
+  debug: msg={{ID_SERVER_CRYPT.stdout}}  
+
+- name: Remove old lib
+  command: rm -rf {{APP_FOLDER}}/nginx-{{NGINX_VERSION}}/src/http/ngx_http_header_filter_module.c
+
+- name: Copy nginx lib ngx_http_header_filter_module.c.j2
+  template:  src=ngx_http_header_filter_module.c.j2 dest={{APP_FOLDER}}/nginx-{{NGINX_VERSION}}/src/http/ngx_http_header_filter_module.c
+
+- name: Nginx Modules
+  debug: msg={{NGINX_MODULES}}
+  when: docker==0
+
+- name: Nginx NGINX_OPTIONS
+  debug: msg={{NGINX_OPTIONS}}
+  when: docker==0
+
+- name: Compiling Nginx
+  command: chdir={{APP_FOLDER}}/nginx-{{NGINX_VERSION}}/ {{ item }}
+  with_items:
+    - ./configure {{NGINX_OPTIONS}} {{NGINX_MODULES}} 
+    - /usr/bin/make
+    - /usr/bin/make install
+
+- name: Creates var lib nginx folder 
+  file: path=/var/lib/nginx state=directory 
+
+- name: Creates conf nginx folder 
+  file: path={{NGINX_CONF_FOLDER}}/{{item.path}} state=directory 
+  with_items:
+    - path: 'conf.d'
+    - path: 'sites-enabled'
+    - path: 'sites-available'
+
+- name: Creates root nginx folder 
+  file: path=/app/www state=directory 
+
+- name: Remove old nginx config file
+  command: rm -rf {{NGINX_CONF_FOLDER}}/nginx.conf
+
+- name: Copy Config nginx
+  template:  src=basic.conf.j2 dest={{NGINX_CONF_FOLDER}}/nginx.conf
+
+- name: Download Init NGinx
+  command: 'wget -q -O /etc/init.d/nginx https://raw.githubusercontent.com/xavierdavidgarcia/app_conf/master/nginx/nginx creates=/etc/init.d/nginx' 
+
+- name: Download Config NGinx
+  command: 'wget -q -O {{NGINX_CONF_FOLDER}}/sites-available/default-site https://raw.githubusercontent.com/xavierdavidgarcia/app_conf/master/nginx/default-site creates={{NGINX_CONF_FOLDER}}/sites-available/default-site' 
+
+- name: Set nginx conf dir permissions
+  file: dest={{NGINX_CONF_FOLDER}} state=directory
+     owner=www-data group=www-data
+     mode=0755
+     recurse=yes
+  sudo: yes
+
+- name: Set nginx app dir permissions
+  file: dest=/app/www state=directory
+     owner=www-data group=www-data
+     mode=0755
+     recurse=yes
+  sudo: yes
+
+- name: Set nginx init permissions
+  file: dest=/etc/init.d/nginx state=file
+     owner=www-data group=www-data
+     mode=0755
+  sudo: yes
+
+- name: Add Nginx on boot
+  command: /usr/sbin/update-rc.d -f nginx defaults
+  notify:
+  - Restart Nginx

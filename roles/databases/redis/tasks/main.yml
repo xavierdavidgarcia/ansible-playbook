@@ -1,0 +1,77 @@
+---    
+- name: Type of redis
+  debug: msg={{type}}
+  when: docker==0
+
+- name: update apt
+  apt: update_cache=yes
+
+- name: ensure packages installed
+  apt: pkg={{ item }} state=latest
+  with_items:
+    - make
+    - build-essential
+    - tcl8.5
+
+- name: clea3ning old packages
+  command: rm -rf {{APP_FOLDER}}/{{item}}
+  with_items:
+   - redis-stable
+   - redis-stable.tar.gz
+
+- name: download latest stable redis
+  get_url: url={{REDIS_DOWNLOAD}} dest={{APP_FOLDER}}/redis-stable.tar.gz
+
+- name: untar redis
+  command: tar zxf {{APP_FOLDER}}/redis-stable.tar.gz -C {{APP_FOLDER}}
+
+- name: build redis
+  command: make -C /{{APP_FOLDER}}/redis-stable
+
+- name: create redis group
+  group: name=redis state=present system=yes
+
+- name: create redis user
+  user: name=redis group=redis createhome=no shell=/bin/false system=yes state=present
+
+- name: make sure that {{CONF_FOLDER}}/redis exists
+  file: path={{CONF_FOLDER}}/redis state=directory mode=0755 owner=redis group=redis
+
+- name: make sure that {{LOGS_FOLDER}}/redis exists
+  file: path={{LOGS_FOLDER}}/redis state=directory mode=0755 owner=redis group=redis
+
+- name: make sure that /var/db/redis exists
+  file: path={{DATA_FOLDER}}/redis state=directory mode=0755 group=redis owner=redis
+
+- name: make sure redis.log file exists
+  template: src=redis.log.j2 dest={{LOGS_FOLDER}}/redis/redis.log owner=redis group=redis mode=0644
+
+- name: copy redis.conf file
+  template: src=redis-master.conf.j2 dest={{CONF_FOLDER}}/redis/redis.conf group=redis owner=redis
+  when: type == "master"
+
+- name: copy redis.conf file
+  template: src=redis-slave.conf.j2 dest={{CONF_FOLDER}}/redis/redis.conf group=redis owner=redis
+  when: type == "slave"
+
+
+- name: copy redis supervisord script
+  template: src=redis-supervisor.conf.j2 dest={{CONF_FOLDER}}/supervisord/conf.d/redis-supervisor.conf mode=0755 owner=redis group=redis
+  when: docker==0
+
+- name: installing redis binaries
+  command: ln -sf {{APP_FOLDER}}/redis-stable/src/{{ item }} /usr/local/bin/
+  with_items: 
+    - redis-server
+    - redis-cli
+    - redis-check-aof
+    - redis-check-dump
+
+- name: cleaning up build files
+  command: rm -rf {{APP_FOLDER}}/{{ item }}
+  with_items:
+    - redis-stable.tar.gz
+
+- name: ensure supervisor service is restarted
+  service: name=supervisor state=restarted
+  when: docker==0

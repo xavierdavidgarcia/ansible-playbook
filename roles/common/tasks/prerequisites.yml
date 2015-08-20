@@ -1,0 +1,101 @@
+---
+# This role contains common plays that will run on all nodes.
+- name: create group
+  group: name={{user}} state=present system=yes
+
+- name: create user
+  user: name={{user}} group={{user}} createhome=yes shell=/bin/bash system=yes state=present
+
+- name: sudoers user
+  copy: src=90-company-init-users dest=/etc/sudoers.d/
+
+- name: Creates directory
+  file: path=/srv/{{ item.path }} state=directory
+  with_items:
+    - path: 'app'
+    - path: 'src'
+    - path: 'conf'
+    - path: 'data'
+    - path: 'www'
+    - path: 'logs'
+    - path: 'production'
+    - path: 'script'
+    - path: 'tmp'
+
+- name: Creates Symbolic directory    
+  file: src={{item.path}} dest={{ item.dest }} state=link
+  with_items:
+    - { path: '/srv/app', dest: '/root/app' }
+    - { path: '/srv/src', dest: '/root/src' }
+    - { path: '/srv/conf', dest: '/root/conf' }
+    - { path: '/srv/data', dest: '/root/data' }
+    - { path: '/srv/www', dest: '/root/www' }
+    - { path: '/srv/logs', dest: '/root/logs' }
+    - { path: '/srv/production', dest: '/root/production' }
+    - { path: '/srv/script', dest: '/root/script' }
+    - { path: '/srv/tmp', dest: '/root/tmp' }
+    - { path: '/srv/app', dest: '{{ user_folder }}/app' }
+    - { path: '/srv/src', dest: '{{ user_folder }}/src' }
+    - { path: '/srv/conf', dest: '{{ user_folder }}/conf' }
+    - { path: '/srv/data', dest: '{{ user_folder }}/data' }
+    - { path: '/srv/www', dest: '{{ user_folder }}/www' }
+    - { path: '/srv/logs', dest: '{{ user_folder }}/logs' }
+    - { path: '/srv/production', dest: '{{ user_folder }}/production' }
+    - { path: '/srv/script', dest: '{{ user_folder }}/script' }
+    - { path: '/srv/tmp', dest: '{{ user_folder }}/tmp' }
+  sudo: yes
+
+- name: Copy environment file
+  template: src=environment.j2 dest=/etc/environment
+
+- name: Creates and copy bashrc.d folder
+  file: path={{ item.path }} state=directory
+  with_items:
+    - { path: '{{ user_folder }}/.bashrc.d'}
+    - { path: '/root/.bashrc.d'}
+    - { path: '/etc/skel/.bashrc.d'}
+
+- name: Copy all file on bashrc folder to root bashrc folder 
+  copy: src=bashrc.d/{{item.path}} dest=/root/.bashrc.d/
+  with_items:
+    - path: 'alias'
+    - path: 'app'
+    - path: 'custom'
+    - path: 'export'
+    - path: 'path'
+
+- name: Copy all file on bashrc folder to User bashrc folder
+  copy: src=bashrc.d/{{item.path}} dest={{ user_folder }}/.bashrc.d/
+  with_items:
+    - path: 'alias'
+    - path: 'app'
+    - path: 'custom'
+    - path: 'export'
+    - path: 'path'
+
+- name: Copy bashrc file to user
+  copy: src=bashrc.j2 dest=/root/.bashrc
+
+- name: Copy nanorc custom file 
+  copy: src=nanorc.j2 dest=/root/.nanorc
+
+- name: Copy screenrc custom file 
+  copy: src=screenrc.j2 dest=/root/.screenrc
+
+- name: Copy bashrc file to root
+  copy: src=bashrc.j2 dest={{ user_folder }}/.bashrc
+
+- name: Copy nanorc custom file 
+  copy: src=nanorc.j2 dest={{ user_folder }}/.nanorc
+
+- name: Copy screenrc custom file 
+  copy: src=screenrc.j2 dest={{ user_folder }}/.screenrc
+
+- name: Copy sysctl custom file 
+  copy: src=sysctl.conf.j2 dest=/etc/sysctl.conf
+  sudo: yes
+
+- name: Copy limits.conf custom file 
+  copy: src=limits.conf.j2 dest=/etc/security/limits.conf
+  sudo: yes
+

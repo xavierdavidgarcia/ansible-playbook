@@ -1,0 +1,6 @@
+---
+# Apply common configuration to all hosts
+- hosts: all
+  user: root
+  roles:
+     - { role: log}

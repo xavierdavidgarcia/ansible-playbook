@@ -1,0 +1,8 @@
+---
+- hosts: 
+    - bhv
+  roles: 
+    - ssh-keys
+  tasks:
+    - include: ssh-keys/tasks/main.yml user_group=ssh_ops
+#    - include: ssh-keys/tasks/main.yml user_group=ssh_leaddev

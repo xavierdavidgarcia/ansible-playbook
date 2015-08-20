@@ -1,0 +1,41 @@
+;supervisord.conf
+
+[unix_http_server]
+file=/tmp/supervisor.sock   ; (the path to the socket file)
+;chmod=0700                 ; sockef file mode (default 0700)
+chown={{USER}}:{{USER}}       ; socket file uid:gid owner
+username=user              ; (default is no username (open server))
+password=123               ; (default is no password (open server))
+
+[inet_http_server]         ; inet (TCP) server disabled by default
+port={{ ansible_eth0['ipv4']['address'] }}:9001        ; (ip_address:port specifier, *:port for all iface)
+username=user              ; (default is no username (open server))
+password=123               ; (default is no password (open server))
+
+[supervisord]
+logfile=/srv/logs/supervisord/supervisord.log    ; supervisord log file
+logfile_maxbytes=50MB                           ; maximum size of logfile before rotation
+logfile_backups=10                              ; number of backed up logfiles
+loglevel=error                                  ; info, debug, warn, trace
+pidfile=/tmp/supervisord.pid                ; pidfile location
+nodaemon=false                                  ; run supervisord as a daemon
+minfds=1024                                     ; number of startup file descriptors
+minprocs=200                                    ; number of process descriptors
+user=root                                       ; default user
+childlogdir=/srv/logs/supervisord/               ; where child log files will live
+ 
+[rpcinterface:supervisor]
+supervisor.rpcinterface_factory = supervisor.rpcinterface:make_main_rpcinterface
+
+[supervisorctl]
+serverurl=unix:///tmp/supervisor.sock ; use a unix:// URL  for a unix socket
+;username=chris              ; should be same as http_username if set
+;password=123                ; should be same as http_password if set
+prompt = supervisor
+history_file=/srv/logs/supervisord/supervisord_history  ; use readline history if available
+
+[include]
+files = /srv/conf/supervisord/conf.d/*.conf
+
+
+

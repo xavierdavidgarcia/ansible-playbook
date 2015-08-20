@@ -1,0 +1,5 @@
+##########################################
+# LOG ENTRIES CONF {{item.log_tag}}
+$template Logentries_{{item.log_tag}},"{{item.log_token}} %HOSTNAME% %syslogtag% %msg%\n"
+:syslogtag,contains,"{{item.log_tag}}"  @@api.logentries.com:10000;Logentries_{{item.log_tag}}
+##########################################

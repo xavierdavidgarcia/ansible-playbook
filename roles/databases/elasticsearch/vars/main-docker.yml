@@ -1,0 +1,81 @@
+---
+# Elasticsearch Ansible  Variables
+
+CONF_FOLDER: /srv/conf
+APP_FOLDER: /srv/app
+HOME_FOLDER: '{{APP_FOLDER}}/elasticsearch'
+PLUGIN_FOLDER: '{{HOME_FOLDER}}/plugins'
+DATA_FOLDER: /srv/data
+LOGS_FOLDER: /srv/logs
+WORK_FOLDER: '{{DATA_FOLDER}}/elasticsearch'
+ES_DATA_FOLDER: '{{DATA_FOLDER}}/elasticsearch'
+
+# Elasticsearch APP Variables
+
+ELASTIC_VERSION: 1.4.1
+ELASTIC_DOWNLOAD: https://download.elasticsearch.org/elasticsearch/elasticsearch/elasticsearch-{{ELASTIC_VERSION}}.tar.gz
+ELASTIC_USER: elasticsearch
+ELASTIC_GROUP: elasticsearch
+ELASTIC_TIMEZONE: "America/Los_Angeles"
+
+
+# AWS ElasticSearch Plugin Variable
+
+PLUGIN_AWS_VERSION: 2.4.1
+AWS_BUCKET: elasticsearch
+AWS_REGION: us-east
+AWS_EC2_GROUP: production
+AWS_EC2_GROUP_VALUE: elasticsearch
+AWS_EC2_PING_TIMEOUT: 30s
+AWS_DISCOVERY_IP: private_ip
+
+#  ElasticSearch Plugin Variable
+ELASTIC_PLUGINS:
+  - { name: 'royrusso/elasticsearch-HQ' }
+ # - { name: 'facet-script', url: 'http://dl.bintray.com/content/imotov/elasticsearch-plugins/elasticsearch-facet-script-1.1.2.zip' }
+
+elasticsearch_script_disable_dynamic: false
+elasticsearch_discovery_zen_minimum_master_nodes: 1
+elasticsearch_discovery_zen_ping_timeout: 30s
+elasticsearch_discovery_zen_ping_multicast_enabled: false
+elasticsearch_discovery_zen_ping_unicast_hosts: ["elasticsearch1.domain_name.net.", "elasticsearch2.domain_name.net."]
+
+########################## elasticsearch.yml - Node ###########################
+elasticsearch_node_master: true
+elasticsearch_node_data: true
+elasticsearch_node_rack: ec2
+
+########################## elasticsearch.yml - Index ##########################
+elasticsearch_index_number_of_shards: 5
+elasticsearch_index_number_of_replicas: 0
+
+elasticsearch_heap_size: 1g
+elasticsearch_max_open_files: 65535
+elasticsearch_network_transport_tcp_port: 9300
+elasticsearch_network_http_port: 9200
+elasticsearch_network_http_enabled: true
+elasticsearch_network_bind_host: "{{ ansible_eth0['ipv4']['address'] }}" 
+elasticsearch_max_locked_memory: unlimited
+elasticsearch_cluster_name: {{inventory}}
+elasticsearch_node_name: "{{ inventory_hostname }}"
+elasticsearch_node_max_local_storage_nodes: 1
+elasticsearch_index_mapper_dynamic: true
+elasticsearch_memory_bootstrap_mlockall: true
+elasticsearch_gateway_type: local
+elasticsearch_gateway_recover_after_nodes: 1
+elasticsearch_gateway_recover_after_time: 2m
+elasticsearch_gateway_expected_nodes: 1
+elasticsearch_discovery_zen_minimum_master_nodes: 1
+elasticsearch_discovery_zen_ping_timeout: 30s
+elasticsearch_discovery_zen_ping_multicast_enabled: false
+elasticsearch_misc_auto_create_index: true
+elasticsearch_misc_query_bool_max_clause_count: 4096
+elasticsearch_misc_disable_delete_all_indices: true
+elasticsearch_java_opts: "-XX:-UseSuperWord"
+elasticsearch_thread_pools:
+  - "threadpool.bulk.type: fixed"
+  - "threadpool.bulk.size: 50"
+  - "threadpool.bulk.queue_size: 1000"
+threadpool_bulk_type: fixed
+threadpool_bulk_size: 50
+threadpool_bulk_queue_size: 1000

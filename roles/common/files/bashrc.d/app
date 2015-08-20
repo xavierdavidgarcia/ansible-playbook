@@ -1,0 +1,21 @@
+# SSH
+# Completion:
+if [ -f /etc/bash_completion ]; then . /etc/bash_completion; fi
+[ -f ~/.ssh/config ] && complete -W "`grep 'Host[ =]' ~/.ssh/config | sed -e 's/Host[ =]//g' | xargs`" ssh
+[ -f ~/.ssh/config ] && complete -W "`grep 'Host[ =]' ~/.ssh/config | sed -e 's/Host[ =]//g' | xargs`" scp
+complete -W "`ls /var/log/ | grep -v '.gz$' | grep -v '.[0-9]$' | xargs`" log
+
+export ANT_HOME=/app/ant
+export JAVA_HOME=/app/java
+export _JAVA_OPTIONS="-Djava.net.preferIPv4Stack=true"
+export MAVEN_HOME=/app/maven
+export CATALINA_HOME=/app/tomcat
+
+
+if [ ! X${PATH%%*:${ANT_HOME}/bin*} == X ]; then
+  export PATH=${PATH}:${ANT_HOME}/bin:${DERBY_HOME}/bin:${JAVA_HOME}/bin
+fi
+
+if  [ ! X${PATH%%*:${MAVEN_HOME}/bin*} == X ]; then
+  export PATH=${PATH}:${IVY_HOME}/bin:${MAVEN_HOME}/bin
+fi

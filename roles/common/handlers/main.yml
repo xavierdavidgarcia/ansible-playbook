@@ -1,0 +1,6 @@
+---
+# Handlers for common notifications
+
+- name: restart ssh
+  service: name=sshd state=restarted
+

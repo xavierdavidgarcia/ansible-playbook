@@ -1,0 +1,9 @@
+---
+sensu_user: sensu
+sensu_group: sensu
+rabbit_port: 5671
+rabbit_host: 
+rabbit_user: sensu
+rabbit_password: R@biTT0
+rabbit_vhost: /sensu
+sensu_embedded_ruby: "true"

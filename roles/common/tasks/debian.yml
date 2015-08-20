@@ -1,0 +1,94 @@
+---
+#This role contains common plays that will run on all nodes.
+#Wheezy base 
+- name: Add apt repository base
+  apt_repository: repo='deb http://ftp.us.debian.org/debian/ wheezy main contrib non-free' state=present 
+
+- name: Add apt repository base src
+  apt_repository: repo='deb-src http://ftp.us.debian.org/debian/ wheezy main contrib non-free' state=present
+
+# wheezy security
+- name: Add apt repository security
+  apt_repository: repo='deb http://security.debian.org/ wheezy/updates main contrib non-free' state=present
+- name: Add apt repository security src
+  apt_repository: repo='deb-src http://security.debian.org/ wheezy/updates main contrib non-free' state=present
+
+# wheezy update
+- name: Add apt repository update
+  apt_repository: repo='deb http://ftp.us.debian.org/debian/ wheezy-updates main contrib non-free' state=present
+
+- name: Add apt repository update src
+  apt_repository: repo='deb-src http://ftp.us.debian.org/debian/ wheezy-updates main contrib non-free' state=present
+
+- apt: update_cache=yes
+  ignore_errors: yes
+- apt: upgrade=dist
+
+- apt: name={{item.package}} state=present
+  with_items:
+    - package: 'build-essential'
+    - package: 'libpcre3-dev'
+    - package: 'pkg-config'
+    - package: 'libglib2.0-dev'
+    - package: 'libxml2-dev'
+    - package: 'libxml2'
+    - package: 'libssl-dev'
+    - package: 'libpcre3-dev'
+    - package: 'pkg-config'
+    - package: 'lsb-release'
+    - package: 'pkg-config'
+    - package: 'make'
+    - package: 'dpkg-dev'
+    - package: 'gcc'
+    - package: 'g++'
+    - package: 'libc6-dev'
+    - package: 'libncurses5-dev'
+    - package: 'tree'
+    - package: 'locate'
+    - package: 'python-software-properties'
+    - package: 'procps'
+    - package: 'cron-apt'
+    - package: 'lzma'
+    - package: 'lsof'
+    - package: 'vim'
+    - package: 'byobu'
+    - package: 'snmpd' 
+    - package: 'curl' 
+    - package: 'nmap' 
+    - package: 'traceroute' 
+    - package: 'fail2ban' 
+    - package: 'postfix' 
+    - package: 'netcat' 
+    - package: 'fping' 
+    - package: 'tcpdump' 
+    - package: 'netmask' 
+    - package: 'mc' 
+    - package: 'dstat' 
+    - package: 'rrdtool' 
+    - package: 'byobu' 
+    - package: 'htop' 
+    - package: 'mytop' 
+    - package: 'mailutils' 
+    - package: 'unzip' 
+    - package: 'zip'
+    - package: 'subversion' 
+    - package: 'git' 
+    - package: 'openvpn' 
+    - package: 'ntpdate' 
+    - package: 'sudo' 
+    - package: 'rsync'
+    - package: 'bind9-host'
+    - package: 'dnsutils'
+    - package: 'postgresql-client-9.1'
+    - package: 'python-passlib'
+
+
+
+
+
+
+
+
+
+
+

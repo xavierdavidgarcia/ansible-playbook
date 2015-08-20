@@ -1,0 +1,24 @@
+shell /bin/bash
+term xterm
+setenv SCREEN 1
+
+bind - resize -1
+bind + resize +1
+bind { resize -10
+bind } resize +10
+bind = resize =
+
+startup_message off
+defscrollback 8192
+hardstatus on
+hardstatus alwayslastline
+hardstatus string '%{= kg}[ %{+b}%H%{-b} %{g}][%= %{= kw}%?%-Lw%?%{r}(%{+b W}%n*%f%t%{-b}%?(%u)%?%{r})%{w}%?%+Lw%?%=%> %{g}][%{B} %d/%m %{W}%c %{g}]%-0<'
+
+# terminfo and termcap for nice 256 color terminal
+# allow bold colors - necessary for some reason
+attrcolor b ".I"
+# tell screen how to set colors. AB = background, AF=foreground
+termcapinfo xterm 'Co#256:AB=\E[48;5;%dm:AF=\E[38;5;%dm'
+# erase background with current bg color
+defbce "on"
+term xterm-color

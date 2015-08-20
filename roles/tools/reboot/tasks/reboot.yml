@@ -1,0 +1,9 @@
+---
+# Ansible playbook to restart server on Debian
+#
+- name: restart machine
+  command: shutdown -r now "Ansible updates triggered"
+  async: 0
+  poll: 0
+  ignore_errors: true
+   

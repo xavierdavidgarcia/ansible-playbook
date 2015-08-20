@@ -1,0 +1,6 @@
+---
+# Ansible playbook to reboot all instances on Debian
+- hosts: all
+  user: root
+  roles:
+     - { role: reboot }

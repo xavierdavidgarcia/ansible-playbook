@@ -1,0 +1,7 @@
+---
+ java_download: http://download.oracle.com/otn-pub/java/jdk/7u55-b13/jdk-7u55-linux-x64.tar.gz
+ java_name: jdk-7u55-linux-x64
+ download_folder: /srv/app
+ java_archive: "{{download_folder}}/{{java_name}}.tar.gz"
+ java_folder: /srv/app
+ java_alias: java

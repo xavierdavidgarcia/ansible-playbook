@@ -1,0 +1,89 @@
+---
+# Add debian backport repository
+- name: Add backport depot for debian
+  apt_repository: repo='deb http://http.debian.net/debian wheezy-backports main' state=present
+
+- name: Update apt
+  apt: update_cache=yes
+
+# Install prerequisite system APT
+- name: install basic package
+  apt: pkg={{ item }}
+  with_items:
+    - build-essential
+    - python-dev
+    - python-pip
+    - libxml2-dev
+    - libxslt-dev
+    - mysql-client-5.5
+    - libmysqlclient-dev
+    - git
+    - daemontools
+
+# Install prerequisite Python
+- name: Instal mysql python
+  pip: name=MySQL-python
+
+# Install APT powerdns and backend mysql from backport debian
+- name: install powerdns
+  apt: name={{ item }} state=latest default_release=wheezy-backports update_cache=yes
+  with_items:
+    - pdns-server
+    - pdns-backend-mysql
+
+# Remove old configuration files
+- name: Remove conf file 1
+  shell: rm -rf /etc/powerdns/*.conf
+
+- name: Remove conf file 2 
+  shell: rm -rf /etc/powerdns/pdns.d/*.conf
+
+# Create configuration folders
+- name: Creates directory modules
+  file: path=/etc/powerdns/pdns.d state=directory recurse=yes mode=0644
+
+- name: Creates directory logs
+  file: path={{ LOG_FOLDER }} state=directory recurse=yes mode=0644
+
+- name: Creates Symbolic directory    
+  file: src=/etc/powerdns/ dest={{ CONF_FOLDER }} state=link 
+
+#  Add configuration files
+- name: copy PowerDNS config file
+  template: src=powerdns/pdns.conf.j2 dest=/etc/powerdns/pdns.conf mode=0600
+
+- name: copy PowerDNS mysql config file
+  template: src=powerdns/pdns.gmysql.conf.j2 dest=/etc/powerdns/pdns.d/pdns.gmysql.conf mode=0600
+
+- name: copy PowerDNS logging config file
+  template: src=powerdns/pdns.logging.conf.j2 dest=/etc/powerdns/pdns.d/pdns.logging.conf mode=0600
+
+- name: copy PowerDNS monitoring config file
+  template: src=powerdns/pdns.monitoring.conf.j2 dest=/etc/powerdns/pdns.d/pdns.monitoring.conf mode=0600
+  ignore_errors: yes
+  notify: start powerdns
+
+# Setup Logging on syslog
+- name: Add information on syslog configuration file
+  lineinfile: 
+      dest={{ SYSLOG_PATH }} 
+      line="local0.info                       -{{ LOG_FOLDER }}/pdns.info"
+
+- name: Add information on syslog configuration file
+  lineinfile: 
+      dest={{ SYSLOG_PATH }} 
+      line="local0.warn                       -{{ LOG_FOLDER }}/pdns.warn"
+
+- name: Add information on syslog configuration file
+  lineinfile: 
+      dest={{ SYSLOG_PATH }} 
+      line="local0.err                       -{{ LOG_FOLDER }}/pdns.err"
+  notify: restart rsyslog
+
+# Setup Logrotate
+- name: copy logrotate
+  template: src=system/pdns-logrotate.j2 dest=/etc/logrotate.d/pdns-logrotate mode=0600
+
+
+
+

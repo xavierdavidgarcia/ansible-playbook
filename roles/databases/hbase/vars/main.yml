@@ -1,0 +1,14 @@
+APP_FOLDER: /srv/app
+CONF_FOLDER: /srv/conf
+HBASE_SERVER: /srv/app/hbase/bin/hbase
+LOGS_FOLDER: /srv/log
+HBASE_VERSION: 0.98.4
+HOME_FOLDER: '{{APP_FOLDER}}/hbase'
+HBASE_USER: hbase
+HBASE_GROUP: hbase
+HBASE_DOWNLOAD: https://archive.apache.org/dist/hbase/hbase-{{HBASE_VERSION}}/hbase-{{HBASE_VERSION}}-hadoop2-bin.tar.gz 
+HBASE_SERVER: /srv/app/hbase/bin/hbase
+HBASE_CONF_DIR: /srv/conf/hbase/
+ZOOKEEPER_CONF_DIR: /srv/conf/zookeeper
+HBASE_LOG_DIR: /srv/log/hbase/
+ZOOKEEPER_LOG_DIR: /srv/log/zookeeper

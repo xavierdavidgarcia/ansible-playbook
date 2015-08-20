@@ -1,0 +1,75 @@
+---
+# Install prerequisite system APT
+- name: install basic package
+  apt: pkg={{ item }}
+  with_items:
+    - nginx
+    - php5
+    - php5-fpm
+    - php5-mcrypt
+    - php5-mysql
+    - php5-dev
+    - php-pear
+    - php-db
+    - wget
+
+
+# Install powerdadmin
+# 
+
+- name: Creates poweradmin install folder
+  file: path={{ POWER_PATH }}/poweradmin state=directory recurse=yes mode=0644
+
+# - name: Download poweradmin
+#   get_url: url={{POWER_URL}} dest={{ POWER_PATH }}/poweradmin/powerdns.tgz mode=0777 validate_certs=no
+
+# - name: Wait 10 seconde for dowloading file
+#   pause: seconds=10
+
+# - name: Extract poweradmin
+#   command: "tar -xzf {{ POWER_PATH }}/poweradmin/powerdns.tgz -C {{ POWER_PATH }}/poweradmin/"
+#   sudo: yes
+
+# Change to git repository
+# 
+# https://github.com/poweradmin/poweradmin.git
+- name: Download git poweradmin
+  git: repo={{ POWER_GIT }}
+       dest={{ POWER_PATH }}/poweradmin/
+       accept_hostkey=yes
+       force=yes
+
+- name: Nginx configuration
+  template: src=poweradmin/config.inc.php.j2 dest={{ POWER_PATH }}/poweradmin/inc/config.inc.php mode=0600
+
+- name: Set Apps permissions
+  file: dest={{ POWER_PATH }}/poweradmin/
+     mode=0777
+     recurse=yes
+     
+# Configure Nginx
+# 
+- name: Creates nginx logs folder
+  file: path={{ NGINX_LOG }} state=directory recurse=yes mode=0644
+
+- name: Remove old php configuration
+  shell: rm -f /etc/php5/fpm/pool.d/www.conf
+
+- name: Reconfiguration of php-fpm to accept the port 9000
+  template: src=nginx/www.conf.j2 dest=/etc/php5/fpm/pool.d/www.conf mode=0600
+  notify: restart php
+  sudo: true
+
+- name: Remove all Virtualhost available
+  shell: rm /etc/nginx/sites-enabled/* 
+  sudo: true
+
+- name: Virtualhost configuration
+  template: src=nginx/poweradmin.conf.j2 dest=/etc/nginx/sites-enabled/poweradmin.conf mode=0600
+  notify: restart nginx
+  sudo: true
+
+- name: Create symbolik link for 
+  file: src=/etc/nginx/ dest={{ CONF_FOLDER }}/nginx state=link
+
+

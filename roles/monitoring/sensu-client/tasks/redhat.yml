@@ -1,0 +1,6 @@
+---
+- name: Copy Sensu repo file
+  copy: src=sensu.repo dest=/etc/yum.repos.d/sensu.repo owner=root group=root mode=0644
+
+- name: install Sensu
+  yum: name=sensu state=present

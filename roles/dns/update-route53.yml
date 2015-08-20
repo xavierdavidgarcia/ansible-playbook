@@ -1,0 +1,10 @@
+---
+- hosts: all
+  user: root
+  sudo: true
+  roles:
+     - { role: update-route53 }
+
+
+
+ 

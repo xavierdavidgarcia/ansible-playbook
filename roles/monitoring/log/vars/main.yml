@@ -1,0 +1,6 @@
+RSYSLOG_LOGENTRY_CONF: /etc/rsyslog.d/50-logentries.conf
+RSYSLOG_APPS_CONF: /etc/rsyslog.d/45-apps.conf
+LOGROTATE_CONF_DIR: /etc/logrotate.d
+
+PRODUCTION_APP_LOG_ITEMS:
+  - {ops_token: '', log_name: '', log_token: '', log_path: '', log_tag: '', app_host: ''}

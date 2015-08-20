@@ -1,0 +1,70 @@
+---
+#### Dynamic Route53 DNS update ####
+#
+# Download ec2-metadata tool
+- name: download ec2-metadata
+  get_url: url={{ ec2md_url }} dest={{ ec2md_dir }}/ec2-metadata
+
+- file: path={{ ec2md_dir }}/ec2-metadata owner=root group=root mode=0755
+- file: src={{ ec2md_dir }}/ec2-metadata dest={{ ec2md_dir }}/ec2metadata owner=root group=root state=link
+
+# install python-pip  then 'cli53'
+- include: rh.yml
+  when: ansible_os_family=='RedHat' 
+
+- include: debian.yml
+  when: ansible_os_family=='Debian'
+
+# create config dir then  /etc/route53/config itself
+- file: path=/etc/route53 owner=root group=root mode=0750 state=directory
+- template: src=config.j2 dest=/etc/route53/config owner=root group=root mode=0640 backup=yes
+
+# put the main script
+- copy: src=update-route53-dns dest=/usr/local/bin/update-route53-dns owner=root group=root mode=0750  backup=yes
+
+# === check if the host has OpenVPN then proceed  ===
+#
+- stat: path=/etc/openvpn
+  register: ovpn_present
+- debug: msg="/etc/openvpn exists and is a directory"
+  when: ovpn_present.stat.isdir is defined and ovpn_present.stat.isdir
+#
+# if the host has OpenVPN installed, then put a similar script for VPN
+- copy: src=update-route53-vpn dest=/etc/openvpn/update-route53-vpn owner=root group=root mode=0750 backup=yes
+  when: ovpn_present.stat.isdir is defined and ovpn_present.stat.isdir
+#
+# update OpenVPN settings to hook up our script
+#- copy: src=route53upd.conf dest=/tmp/route53upd.conf owner=root group=root mode=0644
+#  when: ovpn_present.stat.isdir is defined and ovpn_present.stat.isdir
+#
+- name: retrieve the list of OpenVPN conf files to update
+  shell: ls -1 /etc/openvpn/*.conf
+  register: ovpnconf
+  when: ovpn_present.stat.isdir is defined and ovpn_present.stat.isdir
+
+- name: Add the script call when VPN link is up
+  lineinfile: dest={{ item }} line="script-security 2"
+  with_items: ovpnconf.stdout_lines
+  when: ovpn_present.stat.isdir is defined and ovpn_present.stat.isdir
+
+- lineinfile: dest={{ item }} line="up ./update-route53-vpn"
+  with_items: ovpnconf.stdout_lines
+  when: ovpn_present.stat.isdir is defined and ovpn_present.stat.isdir
+
+#- service: name=openvpn state=restarted
+#  when: ovpn_present.stat.isdir is defined and ovpn_present.stat.isdir
+
+#
+# === End of OpenVPN ===
+
+# add hooks to update Route53 when the networking gets (re-)started
+- file: src=/usr/local/bin/update-route53-dns dest=/etc/NetworkManager/dispatcher.d/09-route53 owner=root group=root state=link
+  when: ansible_os_family=='RedHat' 
+
+- file: src=/usr/local/bin/update-route53-dns dest=/etc/network/if-up.d/update-route53-dns owner=root group=root state=link
+  when: ansible_os_family=='Debian'
+
+#   Finally,  update the Route53 to create/update records for Public  and LAN IPs
+#- shell: /usr/local/bin/update-route53-dns
+
+- debug: msg="*** Host {{ inventory_hostname }}.{{ route53_dns_zone }} is DONE *** "

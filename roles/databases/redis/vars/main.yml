@@ -1,0 +1,8 @@
+CONF_FOLDER: /srv/conf
+APP_FOLDER: /srv/app
+REDIS_DOWNLOAD: http://download.redis.io/redis-stable.tar.gz
+DATA_FOLDER: /srv/data
+LOGS_FOLDER: /srv/logs
+REDIS_PORT: 6379
+REDIS_PASSWORD: 
+REDIS_MASTER_HOST: "master.domaine_name.tld"

@@ -1,0 +1,30 @@
+---
+- name: Install EPEL repo.
+  yum:
+    name: "{{ epel_repo_url }}"
+    state: present
+
+- name: Import EPEL GPG key.
+  rpm_key:
+    key: "{{ epel_repo_gpg_key_url }}"
+    state: present
+
+- name: upgrade all packages
+  yum: name=* state=latest
+
+- name: Install RedHat packages
+  yum: pkg={{item}} state=present
+  with_items:
+    - wget
+    - curl
+    - gcc-c++
+    - gcc
+    - curl
+    - htop
+    - ftop
+    - lsof
+    - libselinux-python
+    - ntp
+
+- name: selinux disabled
+  selinux: state=disabled

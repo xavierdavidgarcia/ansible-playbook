@@ -1,0 +1,97 @@
+---
+
+# kafka dependencies
+- name: Kafka | Make sure the kafka dependencies are installed
+  apt: pkg={{ item }} state=present
+  with_items:
+    - supervisor
+    - wget
+#- service: name=supervisor state=restarted enabled=yes
+
+# Get Public Ip
+- shell: wget -qO- http://ipecho.net/plain ; echo
+  register: PUBLIC_IP
+
+# kafka user and group
+- name: Kafka | Make sure the kafka group is present
+  group: name=kafka state=present system=yes
+
+- name: create kafka user
+  user: name=kafka group=kafka createhome=no shell=/bin/false system=yes state=present
+
+# install kafka
+- name: download kafka
+  get_url: url={{KAFKA_DOWNLOAD}} dest={{APP_FOLDER}}/kafka.tar.gz sha256sum={{KAFKA_SHA256SUM}}
+
+- name: untar kafka
+  command: tar zxf {{APP_FOLDER}}/kafka.tar.gz -C {{APP_FOLDER}}
+
+- name: cleanup download
+  command: rm -rf {{APP_FOLDER}}/kafka.tar.gz 
+
+- name: ensure kafka base not exist
+  file: path={{APP_FOLDER}}/kafka state=absent
+
+- name: rename kafka base
+  command: mv {{APP_FOLDER}}/kafka_{{KAFKA_VERSION}} {{APP_FOLDER}}/kafka
+
+- name: download slf4g-logforg12 jar
+  get_url: url={{KAFKA_SLF4J_DOWNLOAD}} dest={{APP_FOLDER}}/kafka/libs/slf4j-log4j12.jar
+
+- name: create kafka log folder
+  file: path={{LOGS_FOLDER}}/kafka state=directory mode=0755 owner=kafka group=kafka
+
+- name: create zookeeper log folder
+  file: path={{LOGS_FOLDER}}/kafka/zookeeper state=directory mode=0755 owner=kafka group=kafka
+
+- name: create data folder
+  file: path={{DATA_FOLDER}}/kafka state=directory mode=0777 owner=kafka group=kafka
+
+- name: create zookeeper data folder
+  file: path={{DATA_FOLDER}}/zookeeper state=directory mode=0755 owner=kafka group=kafka
+
+- name: create kafka conf folder
+  file: path={{CONF_FOLDER}}/kafka state=directory mode=0755 owner=kafka group=kafka
+
+- name: create log4j directory
+  file: src={{ DATA_FOLDER }}/kafka dest={{APP_FOLDER}}/kafka/logs state=link owner=kafka group=kafka
+
+- name: create log-cleaner
+  file: path={{ DATA_FOLDER }}/kafka/log-cleaner.log state=touch  mode=0666 owner=kafka group=kafka
+
+# copy config
+- name: copy kafka config
+  template: src=kafka-config-server.properties.j2 dest={{CONF_FOLDER}}/kafka/kafka-server.properties owner=kafka group=kafka mode=0644
+- name: copy zookeeper config
+  template: src=zookeeper-config-server.properties.j2 dest={{CONF_FOLDER}}/kafka/zookeeper-server.properties owner=kafka group=kafka mode=0644
+- name: create myid file
+  template: src=zookeeper-myid.j2 dest={{DATA_FOLDER}}/zookeeper/myid owner=kafka group=kafka mode=0644
+- name: add server.x lines to zookeeper conf
+  lineinfile: dest={{CONF_FOLDER}}/kafka/zookeeper-server.properties line="server.{{item.replace('.','')}}={{item}}:{{KAFKA_ZOOKEEPER_QUORUM_PORT}}:{{KAFKA_ZOOKEEPER_ELECTION_PORT}}" insertafter=EOF
+  with_items: KAFKA_ZOOKEEPER_HOSTS
+  sudo: yes 
+
+- name: copy log4j config
+  file: src={{APP_FOLDER}}/kafka/config/log4j.properties dest={{CONF_FOLDER}}/kafka/log4j.properties owner=kafka group=kafka mode=0644
+  when: docker==0
+# copy kafka supervisor conf
+- name: copy kafka supervisord script
+  template: src=kafka-supervisor-conf.j2 dest={{CONF_FOLDER}}/supervisord/conf.d/kafka-supervisor.conf mode=0755 owner=root group=root
+  sudo: yes
+  when: docker==0
+
+# copy zookeeper supervisor conf
+- name: copy zookeeper supervisord script
+  template: src=zookeeper-supervisor-conf.j2 dest={{CONF_FOLDER}}/supervisord/conf.d/zookeeper-supervisor.conf mode=0755 owner=root group=root
+  sudo: yes
+  when: docker ==0
+
+# restart supervisord
+- name: restart supervisord
+  command: service supervisor {{item}}
+  with_items:
+    - stop
+    - start
+  sudo: yes
+  when: docker==0
+

@@ -1,0 +1,30 @@
+---
+#
+# SSH key repository/inventory
+#
+#  please add new users/keys to an appropriate group
+
+ssh_leaddev:
+  - name: Name_Of_the_Lead_Dev
+    key: "{{ lookup('file', 'Key_name-id_rsa.pub') }}"
+    sudoers: true
+    state: present
+  - name: Name_Of_the_Lead_Dev
+    key: "{{ lookup('file', 'Key_name-id_rsa.pub') }}"
+    sudoers: false
+    state: present
+
+ssh_dev:
+  - name: Name_Of_the_Dev
+    key: "{{ lookup('file', 'Key_name-id_rsa.pub') }}"
+    sudoers: false
+    state: present
+
+ssh_ops:
+  - name: Name_Of_the_Ops
+    key: "{{ lookup('file', 'Key_name-id_rsa.pub') }}"
+    sudoers: true
+    state: present
+
+
+user_group: ssh_ops

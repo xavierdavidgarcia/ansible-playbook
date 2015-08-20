@@ -1,0 +1,125 @@
+---
+# Ansible playbook to swing ssh-key
+#
+- name: debug inventory name
+  debug: msg={{inventory}}
+- name: Username
+  debug: msg={{user_folder}}
+- name: Creates directory private ssh key /app/ssh
+  file: path=/srv/app/ssh/ state=directory
+     owner={{user}} group={{user}}
+     recurse=yes
+- name: Creates directory private ssh key /app/ssh
+  file: path={{ user_folder }}/.ssh/ state=directory
+     owner={{user}} group={{user}}
+     recurse=yes
+- name: Creates directory private ssh key /app/ssh
+  file: path=/root/.ssh state=directory
+     owner=root group=root
+     recurse=yes
+- name: Swing production root authorized_keys config  
+  copy: src=production/{{item.path}} dest=/root/.ssh/
+  with_items:
+    - path: 'authorized_keys'
+    - path: 'config'
+  when: inventory == "production"
+
+- name: Swing production user authorized_keys config  
+  copy: src=production/{{item.path}} dest={{ user_folder }}/.ssh/
+  with_items:
+    - path: 'authorized_keys'
+    - path: 'config'
+  when: inventory == "production"
+
+- name: Swing Stage root authorized_keys config 
+  copy: src=stage/{{item.path}} dest=/root/.ssh/
+  with_items:
+    - path: 'authorized_keys'
+    - path: 'config'
+  when: inventory == "stage"
+
+- name: Swing Stage User authorized_keys config 
+  copy: src=stage/{{item.path}} dest={{user_folder}}/.ssh/
+  with_items:
+    - path: 'authorized_keys'
+    - path: 'config'
+  when: inventory == "stage"
+
+- name: Swing production root ssh key 
+  copy: src=production/{{item.path}} dest=/srv/app/ssh/
+  with_items:
+    - path: 'production.pem'
+    - path: 'production.pub'
+    - path: 'id_rsa_ops_deploy-2014.pem'
+    - path: 'id_rsa_ops_deploy-2014.pub'
+  when: inventory == "production"
+
+- name: Swing production user ssh key 
+  copy: src=production/{{item.path}} dest=/srv/app/ssh/
+  with_items:
+    - path: 'production.pem'
+    - path: 'production.pub'
+    - path: 'id_rsa_ops_deploy-2014.pub'
+    - path: 'id_rsa_ops_deploy-2014.pem'
+  when: inventory == "production"
+
+- name: Change permission ssh private key
+  file: dest=/app/ssh/production.pem state=file
+     owner={{user}} group={{user}}
+     mode=0600
+  when: inventory == "production"
+
+- name: Swing Stage root ssh key 
+  copy: src=stage/{{item.path}} dest=/srv/app/ssh/ owner=root group=root mode=0600
+  with_items:
+    - path: 'stage-2014.pem'
+    - path: 'stage-2014.pub'
+    - path: 'id_rsa_ops_deploy-2014.pem'
+    - path: 'id_rsa_ops_deploy-2014.pub'
+  when: inventory == "stage"
+
+- name: Swing Stage User ssh key 
+  copy: src=stage/{{item.path}} dest=/srv/app/ssh/
+  with_items:
+    - path: 'stage-2014.pem'
+    - path: 'stage-2014.pub'
+    - path: 'id_rsa_ops_deploy-2014.pem'
+    - path: 'id_rsa_ops_deploy-2014.pub'
+  when: inventory == "stage"
+
+- name: Change permission ssh private key
+  file: dest=/app/ssh/stage-2014.pem state=file
+     owner={{user}} group={{user}}
+     mode=0600
+  when: inventory == "stage"
+
+- name: Chown authorized production root_keys
+  file: path=/root/.ssh/authorized_keys state=file
+     owner=root group=root
+     mode=0600
+
+- name: Chown authorized production root_keys
+  file: path={{ user_folder }}/.ssh/authorized_keys state=file
+     owner={{user}} group={{user}}
+     mode=0600
+- name: Chown authorized production root_keys
+  file: path=/root/.ssh/config state=file
+     owner=root group=root
+     mode=0600
+
+- name: Chown authorized production root_keys
+  file: path={{ user_folder }}/.ssh/config state=file
+     owner={{user}} group={{user}}
+     mode=0600
+     
+- name: Chown authorized production root_keys
+  file: path={{ user_folder }}/.ssh state=directory
+     owner={{user}} group={{user}}
+     mode=0700
+
+- name: Chown authorized production root_keys
+  file: path=/root/.ssh state=directory
+     owner=root group=root
+     mode=0700
+- name: sudoers {{user}} user
+  copy: src=90-company-init-users dest=/etc/sudoers.d/

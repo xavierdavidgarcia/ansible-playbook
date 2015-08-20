@@ -1,0 +1,47 @@
+---    
+- name: update apt
+  apt: update_cache=yes
+
+- name: ensure packages installed
+  apt: pkg={{ item }} state=latest
+  with_items:
+    - make
+    - build-essential
+    - tcl8.5
+
+- name: create zookeeper group
+  group: name={{ZOOKEEPER_GROUP}} state=present system=yes
+
+- name: create hbase user
+  user: name={{ZOOKEEPER_USER}} group={{ZOOKEEPER_GROUP}}  createhome=no shell=/bin/false system=yes state=present
+
+- name: create {{CONF_FOLDER}}/zookeeper exists
+  file: path={{CONF_FOLDER}}/zookeeper state=directory mode=0755 owner={{ZOOKEEPER_USER}} group={{ZOOKEEPER_GROUP}}
+
+- name: create {{CONF_FOLDER}}/zookeeper exists
+  file: path={{CONF_FOLDER}}/zookeeper state=directory mode=0755 owner={{ZOOKEEPER_USER}} group={{ZOOKEEPER_GROUP}}
+
+- name: make sure that {{LOGS_FOLDER}}/hbase exists
+  file: path={{LOGS_FOLDER}}/zookeeper state=directory mode=0755 owner={{ZOOKEEPER_USER}} group={{ZOOKEEPER_GROUP}}
+
+- name: make sure that {{LOGS_FOLDER}}/zookeeper exists
+  file: path={{LOGS_FOLDER}}/zookeeper state=directory mode=0755 owner={{ZOOKEEPER_USER}} group={{ZOOKEEPER_GROUP}}
+
+- name: download hbase
+  get_url: url={{ZOOKEEPER_DOWNLOAD}} dest={{APP_FOLDER}}/zookeeper-{{ZOOKEEPER_VERSION}}.tar.gz
+
+- name: untar hbase
+  command: tar zxf {{APP_FOLDER}}/zookeeper-{{ZOOKEEPER_VERSION}}.tar.gz -C {{APP_FOLDER}}
+  
+- name: Creates Symbolic directory    
+  file: src={{APP_FOLDER}}/zookeeper-{{ZOOKEEPER_VERSION}} dest={{HOME_FOLDER}} state=link
+  environment:
+    ZOOKEEPER_CONF_DIR:  "{{HBASE_CONF_DIR}}"
+    ZOOKEEPER_CONF_DIR: "{{ZOOKEEPER_CONF_DIR}}"
+    ZOOKEEPER_LOG_DIR: "{{ZOOKEEPER_LOG_DIR}}"
+
+- name: cleaning up build files
+  command: rm -rf {{APP_FOLDER}}/{{ item }}
+  with_items:
+    - hbase-{{ZOOKEEPER_VERSION}}.tar.gz
+

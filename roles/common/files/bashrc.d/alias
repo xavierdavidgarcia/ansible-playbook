@@ -1,0 +1,52 @@
+# Alias:
+if [ -x /usr/bin/dircolors ]; then test -r ~/.dircolors && eval "$(dircolors -b ~/.dircolors)" || eval "$(dircolors -b)"; fi
+alias lx='ls -lXB'      # sort by extension
+alias lk='ls -lSr'      # sort by size
+alias lc='ls -lcr'      # sort by change time
+alias lu='ls -lur'      # sort by access time
+alias lr='ls -lR'       # recursive ls
+
+export LS_OPTIONS='--color=auto'
+eval "`dircolors`"
+alias ls='ls $LS_OPTIONS'
+alias ll='ls $LS_OPTIONS -l'
+alias l='ls $LS_OPTIONS -lA'
+alias cp='cp -i'
+alias mv='mv -i'
+alias rm='rm -I'                    # 'rm -i' prompts for every file
+alias ln='ln -i'
+alias lm='ls -al | less'
+
+alias sls='screen -ls | grep -v "There are\|Sockets in"'
+alias sr='screen -r ';
+alias up='cd ..'
+alias grep='grep --color=auto'
+alias fgrep='fgrep --color=auto'
+alias egrep='egrep --color=auto'
+
+alias m='more'
+alias l='less'
+alias tree='tree -Csu'      # nice alternative to 'ls'
+alias 'ps?'='ps aux | grep '
+alias pssh="/usr/bin/parallel-ssh";
+alias mysqlprocess="watch -n 1 mysqladmin -S /var/run/mysqld/mysqld.sock --user=root --password= processlist";
+alias topmem="ps -eorss,args | sort -nr | pr -TW$COLUMNS | head";
+alias topmem2="ps -eo pmem,ppid,comm | sort -k 1 -r -n | head -11 | tail -10";
+alias epoch="perl -e 'printf qq{%d\n}, time/86400;'"
+alias recent="find . -mmin -60";
+
+# Func:
+function myfind() { find . -type f -iname '*'$*'*' -ls ; }
+function mynetstat { lsof -nP -c $1 | egrep -o '(TCP|UDP).*$' | sort -u; }
+function logs() { lt /var/log/$1; }
+function log()  { tail -f /var/log/$1; }
+function sshcopyid() { cat ~/.ssh/id_dsa.pub | ssh $1 'cat - >> ~/.ssh/authorized_keys'; }
+
+
+# Alias Soft
+
+alias nmap='sudo nmap'
+alias screen='byobu'
+
+# Supervisord
+alias supctl='supervisorctl -s http://{{ansible_ssh_host}}:9001 -u nexadmin -p8G369dEHP77hvx'

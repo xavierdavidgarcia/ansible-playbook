@@ -1,0 +1,44 @@
+---
+########## Manage users ####################
+#***  'ssh-keys' role usage manual ***
+
+# 1. When you add a new user:
+#  - put user's SSH pub key into 'files' folder
+#  - add an entry to an appropriate group inside 'vars/main.yml' file, follow the rules and structure.
+
+# 2. To deploy, update 'ssh-keys.yml' to your need: 
+#  - define group of hosts to deploy to
+#  - list your groups to proceed on as follows:
+# tasks:
+#     - include: ssh-keys/tasks/main.yml user_group=ssh_ops
+#     - include: ssh-keys/tasks/main.yml user_group=ssh_leaddev 
+#     - include: ssh-keys/tasks/main.yml user_group=ssh_newgroup
+#     - ..etc.   See the full list of groups inside 'vars/main.yml' file
+
+# 3.  When someone resigns from the company, update 'vars/main.yml' file. 
+# DO NOT DELETE the user from the list(s), instead of this change his 'state: present'  -> to be 'state: absent', then do p.2 (see above).
+# Similarly, when you need to withdraw or grant sudoers privileges - change the 'sudoers: false' <-> 'sudoers: true', etc, then do p.2  
+# (!) When you enable sudoers for a user - he/she will be able to obtain full 'root' access on the system(s). Be careful, granty it only when there is real need.
+
+# create a user
+- name: create or remove users
+  user: name={{ item.name }} shell=/bin/bash state={{ item.state }}
+  with_items: "{{ user_group }}"
+
+# manage user keys
+- name: add or remove user keys
+  authorized_key: user={{ item.name }} key="{{ item.key }}" state={{ item.state }}
+  with_items: "{{ user_group }}"
+  ignore_errors: yes
+
+# update /etc/sudoers  add a line if needed
+- name: update /etc/sudoers if needed
+  lineinfile: dest=/etc/sudoers line="{{ item.name }}  ALL=(ALL) NOPASSWD:ALL"
+  with_items: "{{ user_group }}"
+  when:  item.sudoers  and  item.state  == "present"
+
+# remove user sudoers line for those who gone
+- name: remove user from /etc/sudoers 
+  lineinfile: dest=/etc/sudoers state=absent regexp="^{{ item.name }}"
+  with_items: "{{ user_group }}"
+  when: not item.sudoers or item.state  == "absent"

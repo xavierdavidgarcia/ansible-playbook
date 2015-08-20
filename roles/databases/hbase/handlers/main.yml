@@ -1,0 +1,5 @@
+---
+- name: Start hbase
+  service: name=hbase state=started
+- name: Stopped hbase
+  service: name=hbase state=stopped

@@ -1,0 +1,10 @@
+APP_FOLDER: /srv/src
+LOGS_FOLDER: /srv/logs
+NGINX_VERSION: 1.7.6
+NGINX_DOWNLOAD: http://nginx.org/download/nginx-{{NGINX_VERSION}}.tar.gz
+NGINX_CONF_FOLDER: /srv/conf/nginx
+NGINX_OPTIONS: --conf-path={{NGINX_CONF_FOLDER}}/nginx.conf --error-log-path={{LOGS_FOLDER}}/nginx/error.log --pid-path=/var/run/nginx.pid --lock-path=/var/lock/nginx.lock --http-log-path={{LOGS_FOLDER}}/nginx/access.log
+NGINX_MODULES: --with-http_dav_module --http-client-body-temp-path=/var/lib/nginx/body --with-http_ssl_module --http-proxy-temp-path=/var/lib/nginx/proxy --with-http_stub_status_module --http-fastcgi-temp-path=/var/lib/nginx/fastcgi --with-debug --with-http_flv_module --with-http_realip_module --with-http_mp4_module --add-module={{APP_FOLDER}}/nginx_extended_status/src/
+#NGINX_MODULES: --with-http_dav_module --http-client-body-temp-path=/var/lib/nginx/body --with-http_ssl_module --http-proxy-temp-path=/var/lib/nginx/proxy --with-http_stub_status_module --http-fastcgi-temp-path=/var/lib/nginx/fastcgi --with-debug --with-http_flv_module --with-http_realip_module --with-http_mp4_module --add-module=/srv/src/headers-more-nginx-module-0.25 --add-module={{APP_FOLDER}}/nginx_extended_status/src/
+ID_SERVER: "{{ inventory_hostname }}"
+

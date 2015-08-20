@@ -1,0 +1,6 @@
+##########################################
+# LOG ENTRIES CONF ops
+$template Logentries_ops,"{{item.ops_token}} %HOSTNAME% %syslogtag%%msg%\n"
+:syslogtag,!regex,"odys_.*_{{inventory}}_" @@api.logentries.com:10000;Logentries_ops
+##########################################
+

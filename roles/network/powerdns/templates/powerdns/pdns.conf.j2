@@ -1,0 +1,24 @@
+daemon=yes
+guardian={{ GUARDIAN }}
+local-address={{ BINDING_IP }}
+local-port={{BINDING_PORT}}
+setgid=pdns
+setuid=pdns
+version-string={{ VERSION_DISPLAY }}
+
+#allow-recursion=0.0.0.0/0
+#allow-axfr-ips=192.168.56.4/24
+
+#disable-axfr=no
+#disable-tcp=no
+#lazy-recursion=yes
+
+{% if type != 'master' %}
+master=no
+slave=yes
+{% else %}
+master=yes
+slave=no
+{% endif %}
+
+include-dir=/etc/powerdns/pdns.d

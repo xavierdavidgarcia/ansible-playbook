@@ -1,0 +1,39 @@
+server {
+    listen 80;
+    server_name  {{ inventory_hostname }};
+   
+    root   {{ POWER_PATH }}/poweradmin;
+ 
+    access_log  {{ NGINX_LOG }}/{{ inventory_hostname }}.access.log;
+    error_log   {{ NGINX_LOG }}/{{ inventory_hostname }}.error.log;
+ 
+    location / {
+        index index.php index.html;
+        try_files $uri $uri/ /index.php?$args;
+    }   
+   
+
+      # PHP scripts -> PHP-FPM server listening on 127.0.0.1:9000
+        location ~ \.php$ {
+                 # The following line prevents malicious php code to be executed through some uploaded file (without php extension, like image)
+                 # This fix shoudn't work though, if nginx and php are not on the same server, other options exist (like unauthorizing php execution within upload folder)
+                 # More on this serious security concern in the "Pass Non-PHP Requests to PHP" section, there http://wiki.nginx.org/Pitfalls
+                 try_files $uri =404;
+
+                 fastcgi_pass   127.0.0.1:9000;
+                 fastcgi_index  index.php;
+                 include fastcgi_params;
+                 fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+        }
+
+        # Security
+        location ~ /\.ht {
+            deny  all;
+        }
+
+    location ~* ^.+\.(jpg|jpeg|gif|css|png|js|xml)$ {
+        expires     30d;
+    }
+
+
+}

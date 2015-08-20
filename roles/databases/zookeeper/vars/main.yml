@@ -1,0 +1,10 @@
+APP_FOLDER: /srv/app
+CONF_FOLDER: /srv/conf
+LOGS_FOLDER: /srv/log
+ZOOKEEPER_FOLDER: '{{APP_FOLDER}}/zookeeper'
+ZOOKEEPER_USER: zookeeper
+ZOOKEEPER_GROUP: zookeeper
+ZOOKEEPER_VERSION: 3.4.5
+ZOOKEEPER_DOWNLOAD: http://apache.mirror.quintex.com/zookeeper/stable/zookeeper-'{{ZOOKEEPER_VERSION}}}'.tar.gz
+ZOOKEEPER_CONF_DIR: /srv/conf/zookeeper
+ZOOKEEPER_LOG_DIR: /srv/log/zookeeper

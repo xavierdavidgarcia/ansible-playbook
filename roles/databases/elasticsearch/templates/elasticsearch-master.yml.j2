@@ -1,0 +1,32 @@
+##################### ElasticSearch Configuration Master node #####################
+
+cluster.name: {{ elasticsearch_cluster_name }}
+node.name: {{ elasticsearch_node_name }}
+node.master: {{ elasticsearch_node_master }}
+node.rack: {{ elasticsearch_node_rack }}
+node.max_local_storage_nodes: {{ elasticsearch_node_max_local_storage_nodes }}
+node.data: {{ DATA_FOLDER }}/elasticsearch
+index.mapper_dynamic: {{ elasticsearch_index_mapper_dynamic }}
+index.query.bool.max_clause_count: {{ elasticsearch_misc_query_bool_max_clause_count }}
+path.conf: {{CONF_FOLDER}}/elasticsearch
+path.data: {{ DATA_FOLDER }}/elasticsearch
+path.logs: {{ LOGS_FOLDER }}/elasticsearch
+path.plugins: {{ PLUGIN_FOLDER }}
+bootstrap.mlockall: {{ elasticsearch_memory_bootstrap_mlockall }}
+transport.tcp.port: {{ elasticsearch_network_transport_tcp_port }}
+http.port: {{ elasticsearch_network_http_port }}
+http.enabled: {{ elasticsearch_network_http_enabled }}
+gateway.type: {{ elasticsearch_gateway_type }}
+gateway.recover_after_nodes: {{ elasticsearch_gateway_recover_after_nodes }}
+gateway.recover_after_time: {{ elasticsearch_gateway_recover_after_time }}
+gateway.expected_nodes: {{ elasticsearch_gateway_expected_nodes }}
+discovery.zen.minimum_master_nodes: {{ elasticsearch_discovery_zen_minimum_master_nodes }}
+discovery.zen.ping.timeout: {{ elasticsearch_discovery_zen_ping_timeout }}
+discovery.zen.ping.multicast.enabled: {{ elasticsearch_discovery_zen_ping_multicast_enabled }}
+discovery.zen.ping.unicast.hosts: {{ elasticsearch_discovery_zen_ping_unicast_hosts }}
+action.auto_create_index: {{ elasticsearch_misc_auto_create_index }}
+action.disable_delete_all_indices: {{ elasticsearch_misc_disable_delete_all_indices }}
+script.disable_dynamic: {{ elasticsearch_script_disable_dynamic }}
+threadpool.bulk.type: {{ threadpool_bulk_type }}
+threadpool.bulk.size: {{ threadpool_bulk_size }}
+threadpool.bulk.queue_size: {{ threadpool_bulk_queue_size }}

@@ -1,0 +1,10 @@
+SRC_FOLDER: /srv/src
+APP_FOLDER: /srv/app
+LOG_FOLDER: /srv/logs
+CONF_FOLDER: /srv/conf
+DATA_FOLDER: /srv/data
+APP_NAME: graphite
+WEB_USER: root
+WEB_PASS: P@ssw0rd
+CARBON_USER: carbon
+DOMAINE_NAME: 

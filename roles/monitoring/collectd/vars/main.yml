@@ -1,0 +1,16 @@
+SRC_FOLDER: /srv/src
+APP_FOLDER: /srv/app
+LOG_FOLDER: /srv/logs
+CONF_FOLDER: /srv/conf
+DATA_FOLDER: /srv/data
+COLLECTD_VERSION: 5.2.0
+COLLECTD_DOWNLOAD: http://collectd.org/files/collectd-5.2.0.tar.gz
+CREDIS_VERSION: 0.2.3
+CREDIS_DOWNLOAD: http://credis.googlecode.com/files/credis-0.2.3.tar.gz
+GRAPHITE_HOST: graphite1.domain_name.net
+GRAPHITE_HOST_1: graphite1.domain_name.net
+GRAPHITE_HOST_2: graphite2.domain_name.net
+GRAPHITE_LB: lb.domain_name.net
+APP_NAME: collectd
+COLLECTD_OPTIONS: --prefix={{APP_FOLDER}}/{{APP_NAME}} --sysconfdir={{CONF_FOLDER}}/{{APP_NAME}} --localstatedir={{DATA_FOLDER}}/{{APP_NAME}} --libdir=/usr/lib #--with-java=/srv/app/java/bin --mandir=/usr/share/man --enable-all-plugins
+

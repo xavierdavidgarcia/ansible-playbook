@@ -1,0 +1,12 @@
+---
+# Basic installation playbook for debian
+- include: launch.yml
+
+# Mysql initialisation for the first install if the database are not setted, run playbook --extra-var="mysql=init"
+#- include: mysql_init.yml
+#  when: mysql=="1"
+
+# Install gui poweradmin
+#- include: poweradmin.yml
+
+

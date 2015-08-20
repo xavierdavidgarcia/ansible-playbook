@@ -1,0 +1,53 @@
+- name: Install Supervisord
+  yum: pkg=supervisor
+
+- name: Check if init exists
+  stat: path=/etc/init.d/supervisord-bkp
+  register: check_path
+
+- name: Mv old init file
+  command: mv /etc/init.d/supervisord-bkp /etc/init.d/supervisord
+  when: check_path.stat.exists == true
+
+- name: Creates logs directory
+  file: 
+      path: /srv/logs/supervisord 
+      state: directory
+      owner: "{{ USER }}"
+      group: "{{ USER }}"
+      mode: 0755
+
+- name: Creates conf directory
+  file: 
+      path: /srv/conf/supervisord 
+      state: directory
+      owner: "{{ USER }}"
+      group: "{{ USER }}"
+      mode: 0755
+
+- name: Creates subconf directory
+  file: 
+      path: /srv/conf/supervisord/conf.d/ 
+      state: directory
+      owner: "{{ USER }}"
+      group: "{{ USER }}"
+      mode: 0755
+
+- name: Copy basic configuration
+  template: 
+      src: supervisord.conf.j2 
+      dest: /srv/conf/supervisord/supervisord.conf 
+      owner: "{{ USER }}"
+      group: "{{ USER }}"
+      mode: 0755
+
+- name: Copy init file
+  copy:
+      src:  supervisor.init.redhat.j2
+      dest: /etc/init.d/supervisord
+      owner: "{{ USER }}"
+      group: "{{ USER }}"
+      mode: 0755
+
+- name: Start Supervisord
+  service: name=supervisord state=started

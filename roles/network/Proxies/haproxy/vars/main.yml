@@ -1,0 +1,29 @@
+---
+DEBIAN_REPO: "deb http://cdn.debian.net/debian wheezy-backports main"
+USER: "root"
+API_SERVICES:
+  - { srv_name: 'identity', srv_port: 8080 }
+  - { srv_name: 'tracking', srv_port: 8480 }
+  - { srv_name: 'profile', srv_port: 8180 }
+  - { srv_name: 'recommend', srv_port: 8280 }
+  - { srv_name: 'socialnetwork', srv_port: 8380 }
+  - { srv_name: 'integration', srv_port: 8904 }
+  - { srv_name: 'message', srv_port: 8680 }
+  - { srv_name: 'email', srv_port: 8780 }
+  - { srv_name: 'mobiledisplay', srv_port: 8880 }
+  - { srv_name: 'suppressionlist', srv_port: 8980 }
+  - { srv_name: 'shortlink', srv_port: 8902 }
+  - { srv_name: 'eventstore', srv_port: 8082 }
+  - { srv_name: 'dwstore', srv_port: 8084 }
+  - { srv_name: 'transaction', srv_port: 8582 }
+  - { srv_name: 'operationaldatastore', srv_port: 8584 }
+  - { srv_name: 'reward', srv_port: 8586 }
+
+SERVED_HOST_PRODUCTION:
+  - { ip: '54.172.44.26', alias: 'api1'}
+  - { ip: '54.164.198.206', alias: 'api2'}
+  - { ip: '54.172.74.73', alias: 'api3'}
+  - { ip: '54.164.88.56', alias: 'api4'}
+
+SERVED_HOST_STAGE:
+  - { ip: '54.173.165.48', alias: 'api1-stage'}

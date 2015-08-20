@@ -1,0 +1,30 @@
+---
+- debug: msg={{OPENVPN_URL}}
+
+- name: Install wget
+  apt: pkg=wget
+
+- name: Install Openvpn 
+  apt:  pkg=openvpn state=installed update_cache=true
+  
+- name: Remove Old Openvpn config
+  shell: rm -rf /etc/openvpn/*
+
+- name: Download Openvpn config
+  get_url: url={{OPENVPN_URL}} dest=/etc/openvpn/openvpn_client.tar.gz mode=0777
+
+- name: Wait 10 seconde for dowloading file
+  pause: seconds=10
+
+- name: Extract Openvon configue archive
+  command: "tar -xzf /etc/openvpn/openvpn_client.tar.gz  -C /etc/openvpn"
+  sudo: yes
+  notify:
+  - Reload Openvpn
+
+
+
+
+
+
+
